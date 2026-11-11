@@ -68,6 +68,29 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual(events, ['0e8a', 'first-auth', '0336', 'second-auth', 'end'])
         self.assertFalse(result['camera_firmware_written'])
         self.assertIsNone(transport.SERVICE_DRIVER_SETUP)
+        self.assertIsNone(transport.HOST_SONY_PIDS)
+
+    def test_driver_setup_exposes_driverless_service_to_the_session(self):
+        seen = []
+        transport = SimpleNamespace(SERVICE_DRIVER_SETUP=None, HOST_SONY_PIDS=None)
+        @contextmanager
+        def camera():
+            seen.append(transport.HOST_SONY_PIDS())
+            yield SimpleNamespace(identity={'model': 'ILCE-7CM2'})
+        rows = [{'id': r'USB\VID_054C&PID_0336\8&2D69411B&0&9'}, {'id': r'USB\VID_054C&PID_0E8A\SERIAL'},
+                {'id': r'USB\VID_054C&PID_0336&MI_00\X'}, {'id': r'USB\VID_1234&PID_0336\Y'}]
+        with patch.object(drivers.sys, 'platform', 'win32'), \
+             patch.object(drivers, 'install', return_value={}), \
+             patch('desktopapp.platforms.windows_pnp.devices', return_value=rows), \
+             patch('looktool.devicesession.modules', return_value=(transport, None)), \
+             patch('looktool.devicesession.Camera', side_effect=camera):
+            drivers.prepare(self.root)
+        self.assertEqual(seen, [['0336', '0e8a']])
+        self.assertIsNone(transport.HOST_SONY_PIDS)
+
+    def test_host_enumeration_failure_adds_nothing(self):
+        with patch('desktopapp.platforms.windows_pnp.devices', side_effect=OSError('setupapi')):
+            self.assertEqual(drivers.host_pids(), [])
 
     def test_compile_uses_current_cli_calibration_option(self):
         args = dict(source='look.cube', name='Look', output='look.a7look', model='response.npz')

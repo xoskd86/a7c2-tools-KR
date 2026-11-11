@@ -135,6 +135,11 @@ class SonyBusyFailure(DiagnosticUsbFailure): pass
 # Optional desktop-only driver preparation between the two enumerations.
 # CLI sessions leave it unset; it never retries authentication or firmware I/O.
 SERVICE_DRIVER_SETUP = None
+# Optional host enumeration of present Sony PIDs, set beside SERVICE_DRIVER_SETUP
+# by the Windows desktop driver setup. Windows libusb does not list a device
+# that has no driver yet, so a first-time 0336 is invisible to libusb alone.
+# Enumeration only; it never opens the device.
+HOST_SONY_PIDS = None
 READY_WAIT=30
 SONY_BUSY_WAIT=10
 POLL_INTERVAL=1
@@ -275,7 +280,11 @@ def _cool_down():
 
 def _sony_pids():
     backend=usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)
-    return ['%04x'%d.idProduct for d in usb.core.find(find_all=True,idVendor=0x054c,backend=backend)]
+    found=['%04x'%d.idProduct for d in usb.core.find(find_all=True,idVendor=0x054c,backend=backend)]
+    if HOST_SONY_PIDS is not None:
+        for pid in HOST_SONY_PIDS():
+            if pid not in found:found.append(pid)
+    return found
 
 
 def _wait_for(pid,seconds,seen,prepare=None):
@@ -286,9 +295,22 @@ def _wait_for(pid,seconds,seen,prepare=None):
         for found in _sony_pids():
             if found not in seen:seen.append(found)
         if prepare is not None and not prepared and '%04x'%pid in seen:
-            prepare();prepared=True
+            try:prepare()
+            except Exception as exc:
+                # Authentication already moved the camera to this identity;
+                # never authenticate again from here.
+                raise RuntimeError('서비스 ID %04x의 드라이버 준비에 실패했습니다(%s). 카메라가 서비스 모드에 머물러 있을 수 있으니 다시 인증하지 마세요. '
+                                   'Zadig로 이 ID에 WinUSB를 설치한 뒤 USB를 뽑고 배터리를 약 1분간 분리했다가 다시 시도하세요. 이번에는 카메라에 쓰지 않았습니다.'%(pid,exc)) from exc
+            prepared=True
+            # Installing a driver can outlast the wait and re-enumerates the
+            # device; give the rebound interface a fresh window to open.
+            deadline=max(deadline,time.monotonic()+seconds)
         try:return get_device(pid)
-        except RuntimeError:
+        except (RuntimeError,usb.core.USBError,NotImplementedError) as exc:
+            # Right after a driver install the interface may still be
+            # rebinding; that is retried as enumeration. Otherwise only the
+            # existing not-present/not-readable RuntimeError is retried.
+            if not isinstance(exc,RuntimeError) and not prepared:raise
             if time.monotonic()>=deadline:return None
             time.sleep(.5)
 
