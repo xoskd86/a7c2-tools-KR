@@ -81,22 +81,22 @@ class PortraitJob(DirectJob):
                     self.state['portrait_result']=frames.restore()
                     changed=bool(self.state['portrait_result'].get('cleanup',{}).get('cleanup_deferred'))
             self.save('AWAITING_RELOAD' if changed else 'LOADED')
-            message=('所有读写已结束。按弹窗完整断电重开后，检查横握／两侧竖握的 Fn 网格、创意外观选择页和参数调整页。'
-                     if changed else '当前内容已符合所选状态，没有重复写入。')
-            print('竖屏开关和线框步骤已写好，继续安装其余所选功能。' if combined else message,flush=True)
+            message=('모든 읽기/쓰기가 끝났습니다. 팝업에 따라 전원을 완전히 끄고 다시 켠 뒤, 가로／좌우 세로로 들었을 때의 Fn 그리드, 크리에이티브 룩 선택 화면과 파라미터 조정 화면을 확인하세요.'
+                     if changed else '현재 내용이 이미 선택한 상태와 일치하여 다시 쓰지 않았습니다.')
+            print('세로 표시 스위치와 프레임 선 단계를 기록했습니다. 선택한 나머지 기능 설치를 계속합니다.' if combined else message,flush=True)
             return dict(workspace=str(self.root),phase=self.state['phase'],mode=self.state['mode'],
                         reload_required=changed,
                         frame_assets=12,shared_gauge_assets_changed=7,message=message)
         except BaseException as error:
             self.save('NEEDS_REVIEW',error=str(error))
-            print('请保留日志。下次点击同一操作会重新读取当前资源和机内撤销记录，不重放旧任务。',flush=True)
+            print('로그를 보존하세요. 다음에 같은 작업을 누르면 현재 리소스와 카메라 내 되돌리기 기록을 다시 읽으며, 이전 작업을 재실행하지 않습니다.',flush=True)
             raise
 
 
 def remove_for_vertical_stage(camera,owner,sources):
     portraitbank,_,portraitstage=vertical_modules()
     if not any(source.endswith(portraitbank.MAGIC) for source in sources[:2]):return None
-    print('恢复本测试版的原线框引用和资源索引。',flush=True)
+    print('이 테스트 버전의 원래 프레임 선 참조와 리소스 인덱스를 복원합니다.',flush=True)
     result=portraitstage.Stage(camera,owner,sources=sources[:2]).restore()
     owner.state['portrait_restore_result']=result
     if result.get('readonly_deferred_busy') or result.get('cleanup',{}).get('readonly_deferred_busy'):

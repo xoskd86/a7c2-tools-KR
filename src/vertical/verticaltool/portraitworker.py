@@ -47,7 +47,7 @@ def decode(raw,mode):
         return dict(result,cleanup_deferred=True,reload_required=True)
     busy=(mode in (1,2,3) and phase==5 and completed==3 and status==readonly==-16)
     if status and not busy:
-        raise ValueError('竖屏线框操作停止：文件 %d，步骤 %d，窗口 %d，错误 %d；已写 %d 字节。原生报告：%s'%(
+        raise ValueError('세로 프레임 선 작업 중지: 파일 %d, 단계 %d, 영역 %d, 오류 %d; %d바이트 기록됨. 네이티브 보고서: %s'%(
             file,phase,window,status,byte_count,result))
     if mode and (phase!=5 or completed!=3):raise ValueError('Portrait frame operation did not finish: '+str(result))
     if busy:result['readonly_deferred_busy']=True

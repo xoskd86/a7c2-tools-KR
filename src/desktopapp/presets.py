@@ -10,7 +10,7 @@ from .paths import ROOT
 PACK = 'default-six-v1'
 NAMES = ('Classic Neg.', 'Classic Chrome', 'Nostalgic Neg.', 'Astia',
          'GR Positive Film', 'GR Negative Film')
-SUMMARY = '1 NC · 2 CC · 3 NN · 4 Astia · 5 GR 正片 · 6 GR 负片'
+SUMMARY = '1 NC · 2 CC · 3 NN · 4 Astia · 5 GR Positive · 6 GR Negative'
 
 
 def catalog():
@@ -34,11 +34,11 @@ def resolve(options):
     for row in catalog():
         slot, name, path = row['slot'], row['name'], Path(row['path'])
         if not path.is_file():
-            raise ValueError('内置六款外观文件缺失，请使用完整工具包；尚未连接相机：' + str(path))
+            raise ValueError('내장 룩 6종 파일이 없습니다. 전체 도구 패키지를 사용하세요. 아직 카메라에 연결하지 않았습니다: ' + str(path))
         doc = lookfile.read(path)
         lookfile.writer_document(doc)
         if doc['name'] != name or not doc.get('native_photo'):
-            raise ValueError('内置外观名称／照片阶段不符：' + str(path))
+            raise ValueError('내장 룩 이름／사진 단계 불일치: ' + str(path))
         rows.append(dict(slot=slot, path=str(path), name=name))
     options['looks'] = rows
     return options

@@ -27,7 +27,7 @@ def test_only_selected_setting_copies_can_take_the_selected_value(key,value):
     after=deepcopy(before);data=bytearray(after[0][key+1].data)
     data[0]=data[5]=value;after[0][key+1]=Prop(bytes(data),0xc0)
     core=modules()[1]
-    with pytest.raises(ValueError,match='額外設定變動'):
+    with pytest.raises(ValueError,match='추가 설정 변경'):
         devicesettings.compare(before,after,{},core)
     changes=runtimebindings.setting_array_changes(before,after,{key:value})
     assert changes=={key+1:bytes(data)}
@@ -91,7 +91,7 @@ def completed_array_failure():
         'native_stage_intent','native_intent','native_extra_result','native_result_verified','native_cleanup_verified']]
     tail[3]['result']=result
     return dict(schema='a7c2-direct-job/1',mode='install_all',phase='NEEDS_REVIEW',
-        failed_during='RESTORING_SETTINGS',error='發現額外設定變動：chip0/0x2cf1288，請保存紀錄後檢查',
+        failed_during='RESTORING_SETTINGS',error='추가 설정 변경 발견: chip0/0x2cf1288. 기록을 보존한 뒤 확인하세요',
         program_builds=[dict(windows=65),dict(windows=47)],bundle_options={},identity={'model':'ILCE-7CM2'},
         journal=[dict(event='native_result_verified',stage='checkpoint.staged.so',mode=1,result=dict(windows=n))
                  for n in [65,47]]+[dict(event='complete_program_and_name_bytes_verified')]+tail)

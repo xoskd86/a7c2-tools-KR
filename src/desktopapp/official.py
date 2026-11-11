@@ -49,7 +49,7 @@ def prepare(source, cache=None):
     generation = 'sony-2.01-' + uuid.uuid4().hex[:12]
     folder = cache / generation
     folder.mkdir()
-    print('正在解码原厂文件，仅操作电脑文件…', flush=True)
+    print('공장 파일을 디코딩하는 중입니다. 컴퓨터의 파일만 다룹니다…', flush=True)
     with source.open('rb') as stream, tempfile.TemporaryFile() as decoded:
         if stream.read(8) == fdat.fdatHeaderMagic:
             stream.seek(0)
@@ -72,7 +72,7 @@ def prepare(source, cache=None):
             decoded.write(block)
             count += len(block)
             if time.monotonic() - last >= 5:
-                print('原厂文件已解码 %.0f MiB' % (count / 1048576), flush=True)
+                print('공장 파일 디코딩 %.0f MiB' % (count / 1048576), flush=True)
                 last = time.monotonic()
         decoded.seek(0)
         contents = fdat.readFdat(decoded)

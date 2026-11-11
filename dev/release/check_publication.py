@@ -40,7 +40,7 @@ def main():
     chinese={p.relative_to(ROOT/'docs/zh-CN').as_posix() for p in (ROOT/'docs/zh-CN').rglob('*.md')}
     if english!=chinese or english!={'changelog.md','development.md','lut-formats.md','notices.md'}:
         errors.append('Expected the four matching English/Simplified Chinese documents')
-    expected_markdown={'README.md','README.zh-CN.md','AGENTS.md','src/fl23/NOTICE.md'}
+    expected_markdown={'README.md','README.zh-CN.md','README.ko.md','AGENTS.md','src/fl23/NOTICE.md'}
     expected_markdown|={'docs/'+lang+'/'+name for lang in ['en','zh-CN'] for name in english}
     actual_markdown={p.relative_to(ROOT).as_posix() for p in files if p.suffix=='.md'}
     if actual_markdown!=expected_markdown:errors.append('Markdown outside the documented bilingual structure')

@@ -72,7 +72,7 @@ def factory(expected=None):
                     self.link=transport.RecoverySession(expected)
                     break
                 if time.monotonic()>=deadline:
-                    raise ValueError('未找到相机 USB 连接。请拔插 USB 并选择海量存储后重试；尚未进行服务认证或声音写入。')
+                    raise ValueError('카메라 USB 연결을 찾지 못했습니다. USB를 뽑았다 꽂고 대용량 저장장치를 선택한 뒤 다시 시도하세요. 아직 서비스 인증이나 사운드 쓰기를 하지 않았습니다.')
                 time.sleep(.5)
             self.link.__enter__()
             self.identity = dict(self.link.identity)
@@ -185,9 +185,9 @@ def preflight(root, copy, zig=None, camera_factory=factory, *, expected=None, ad
             candidate.guard(values['appFw.so'], values['cpapp-b.bin'], installed=enabled)
             state['identity'] = camera.identity
             if adopt_only and not enabled:
-                raise ValueError('电子快门声尚未开启。请先点击“开启电子快门声”，完成断电重开后再试听；本次没有写入固件或注册试听。')
+                raise ValueError('전자 셔터음이 아직 켜져 있지 않습니다. 먼저 "전자 셔터음 켜기"를 누르고 전원을 완전히 끄고 다시 켠 뒤 미리 들어 보세요. 이번에는 펌웨어에 쓰거나 미리 듣기를 등록하지 않았습니다.')
             if adopt_only and not current:
-                raise ValueError('旧版快门声音尚未限制机械快门。请重新点击“开启电子快门声”更新后再试听；本次未注册声音。')
+                raise ValueError('이전 버전의 셔터음은 아직 기계식 셔터를 제한하지 않습니다. "전자 셔터음 켜기"를 다시 눌러 갱신한 뒤 미리 들어 보세요. 이번에는 사운드를 등록하지 않았습니다.')
             evidence=values
             if current:
                 # Adoption performs no firmware write; keep small exact

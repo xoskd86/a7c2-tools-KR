@@ -97,5 +97,5 @@ class ConversionIsolationTests(unittest.TestCase):
         output=io.StringIO()
         with contextlib.redirect_stderr(output):
             result=cli.main(['import',str(self.root/'missing.wav'),'--workspace',str(self.work),'--duration','.1'])
-        self.assertEqual(result,2);self.assertIn('本次没有相机读写',output.getvalue())
+        self.assertEqual(result,2);self.assertIn('이번에는 카메라 읽기/쓰기를 하지 않았습니다',output.getvalue())
         self.assertNotIn('do not repeat unknown writes',output.getvalue())

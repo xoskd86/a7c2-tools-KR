@@ -7,7 +7,7 @@ from desktopapp import window
 
 
 def test_notice_distinguishes_camera_prompt_from_actual_tool_failure():
-    for phrase in ('请检查所连接的设备','正常现象','完整日志','海量存储','所有读写已结束','诊断包'):
+    for phrase in ('연결된 기기를 확인하십시오','정상입니다','전체 로그','대용량 저장장치','모든 읽기/쓰기가 끝','진단 패키지'):
         assert phrase in connectionguide.TEXT
     with patch.object(window.W.QMessageBox,'information') as popup:
         window.Window.show_connection_notice(Mock())

@@ -39,13 +39,14 @@ def make_windows_zip(output):
         dest.parent.mkdir(parents=True,exist_ok=True);shutil.copyfile(source,dest)
     shutil.copyfile(ROOT/'README.md',output/'A7C2Tools/README.md')
     shutil.copyfile(ROOT/'README.zh-CN.md',output/'A7C2Tools/README.zh-CN.md')
+    shutil.copyfile(ROOT/'README.ko.md',output/'A7C2Tools/README.ko.md')
     shutil.copyfile(ROOT/'LICENSE',output/'A7C2Tools/LICENSE')
     with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED,compresslevel=6) as stream:
         for source in sorted((output/'A7C2Tools').rglob('*')):
             relative=source.relative_to(output/'A7C2Tools')
             # Users may save diagnostic ZIPs beside the executable. Never
             # redistribute those local files in the next development bundle.
-            if relative.parts[0] not in ('A7C2Tools.exe','_internal','README.md','README.zh-CN.md','LICENSE','VERSION.txt'):continue
+            if relative.parts[0] not in ('A7C2Tools.exe','_internal','README.md','README.zh-CN.md','README.ko.md','LICENSE','VERSION.txt'):continue
             if relative.parts[:3]==('_internal','desktop-assets','profile-library-v1'):continue
             if source.is_file():stream.write(source,source.relative_to(output))
         for relative,source in library.items():stream.write(source,'A7C2Tools/Profiles/'+relative)

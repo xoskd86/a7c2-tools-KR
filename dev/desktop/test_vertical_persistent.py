@@ -155,6 +155,6 @@ class PersistentVerticalTests(unittest.TestCase):
             self.assertTrue(result['readonly_deferred_busy'])
             self.assertEqual((self.camera.primary,self.camera.alias_mask),(1,0))
             self.camera.boot='new-boot'
-            with self.assertRaisesRegex(ValueError,'只读'):job.verify_direct()
+            with self.assertRaisesRegex(ValueError,'읽기 전용'):job.verify_direct()
             self.mount_busy=False
             self.assertEqual(job.verify_direct()['phase'],'LOADED')

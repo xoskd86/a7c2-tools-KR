@@ -62,7 +62,7 @@ def run(action, args, job):
     if action in ('vertical_enable','vertical_disable') and not args.get('session_only'):
         from .platforms import usb_drivers
         from looktool.portraitjob import PortraitJob
-        print('准备本次线框测试的 USB 驱动与服务连接。',flush=True)
+        print('이번 프레임 선 테스트를 위한 USB 드라이버와 서비스 연결을 준비합니다.',flush=True)
         if not args.get('drivers_prepared'):usb_drivers.prepare(job)
         work=Path(args['workspace'])/('frames-'+uuid.uuid4().hex[:8])
         write_json(Path(job)/'backend-workspace.private.json',dict(action=action,workspace=str(work)))
@@ -94,10 +94,10 @@ def run(action, args, job):
             from looktool.factoryrecover import pending, FINISHED
             found=pending(data_root()/'work',args.get('factory_preferred'))
             if found:
-                if found[1]['phase'] not in FINISHED:raise ValueError('恢复尚未结束，请先点击“恢复／继续恢复”')
+                if found[1]['phase'] not in FINISHED:raise ValueError('복원이 아직 끝나지 않았습니다. 먼저 "복원／복원 계속"을 누르세요')
                 args=dict(args,workspace=str(found[0]))
         if not args.get('workspace'):
-            raise ValueError('先完成一次本页操作，再核对重新加载状态。')
+            raise ValueError('먼저 이 페이지의 작업을 한 번 완료한 뒤 재로드 상태를 확인하세요.')
         obj = DirectJob(Path(args['workspace']))
         reference, reference_path = None, args.get('factory') or 'builtin'
         if mode == 'factory_reset':
@@ -150,10 +150,10 @@ def run(action, args, job):
                 prior = {}
             if prior.get('mode')!='factory_reset' or not isinstance(prior.get('identity'), dict):
                 # Old records are evidence only; never let one block a restore.
-                print('所选恢复记录不可用（保留原样）；按当前连接的相机重新生成内建原厂恢复计划。', flush=True)
+                print('선택한 복원 기록을 사용할 수 없습니다(그대로 보존). 현재 연결된 카메라를 기준으로 내장 공장 복원 계획을 새로 만듭니다.', flush=True)
                 result = fresh(obj)
             elif prior['phase'] in FINISHED:
-                print('上次恢复写入已结束；先核对，不重复写入。', flush=True)
+                print('지난 복원 쓰기는 끝났습니다. 먼저 확인하며 다시 쓰지 않습니다.', flush=True)
                 try:
                     verifier = DirectJob(prior_root)
                     result = verifier.verify_direct(factory_values=reference, accepted=bool(args.get('accepted')))
@@ -161,16 +161,16 @@ def run(action, args, job):
                 except ContentChanged as exc:
                     # Read-only verification found other bytes, e.g. features
                     # installed again after that restore: re-plan, don't loop.
-                    print('相机内容已与上次恢复结果不同（%s），通常是之后又安装或修改过功能。旧记录保留；'
-                          '按当前相机字节重新生成原厂恢复计划。' % exc, flush=True)
+                    print('카메라 내용이 지난 복원 결과와 다릅니다(%s). 보통 그 뒤에 기능을 다시 설치하거나 수정한 경우입니다. 이전 기록은 보존합니다. '
+                          '현재 카메라 바이트를 기준으로 공장 복원 계획을 새로 만듭니다.' % exc, flush=True)
                     result = fresh(obj, source=str(prior_root))
             else:
-                print('保留旧恢复记录，从当前相机重新生成内建原厂恢复计划；不重放旧任务。', flush=True)
+                print('이전 복원 기록은 보존하고, 현재 카메라를 기준으로 내장 공장 복원 계획을 새로 만듭니다. 이전 작업을 재실행하지 않습니다.', flush=True)
                 try:
                     result = fresh(obj, prior.get('identity'), str(prior_root))
                 except BodyMismatch:
                     # Rejected from the USB serial before any authentication.
-                    print('当前连接的是另一台机身；该机身的旧记录保留不动。按当前相机重新生成恢复计划。', flush=True)
+                    print('현재 연결된 것은 다른 카메라 본체입니다. 그 본체의 이전 기록은 그대로 둡니다. 현재 카메라를 기준으로 복원 계획을 새로 만듭니다.', flush=True)
                     obj = DirectJob(obj.root.with_name(obj.root.name + '-current-body'))
                     result = fresh(obj, source=str(prior_root))
         else:
@@ -265,8 +265,8 @@ def run(action, args, job):
         from looktool.checkpointjob import Rollback
         obj = Rollback(Path(args['workspace']))
         if action == 'restore_verify' and not obj.state_path.is_file():
-            raise ValueError('所选目录没有旧备份恢复记录，本次没有连接相机。用内置原厂基准或固件文件恢复后，'
-                             '请点“重启后核对并完成恢复”。')
+            raise ValueError('선택한 폴더에 이전 백업 복원 기록이 없어 이번에는 카메라에 연결하지 않았습니다. 내장 공장 기준이나 펌웨어 파일로 복원한 뒤에는 '
+                             '"재시작 후 확인하고 복원 완료"를 누르세요.')
         if action == 'restore':
             result = obj.run(args['backup'], args.get('battery'), args['firmware'],
                              power_confirmed=args.get('power_confirmed', False))

@@ -17,10 +17,10 @@ class SoundActionErrorTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp); source = root / 'silent.wav'
             native_codec.write_wav(source, [0] * 2400, 24000)
-            with self.assertRaisesRegex(RuntimeError, '几乎没有声音') as caught:
+            with self.assertRaisesRegex(RuntimeError, '소리가 거의 없습니다') as caught:
                 sound.run('sound_import', dict(source=str(source), start=0, duration=.01,
                                                workspace=str(root / 'sound')))
-            self.assertIn('本次没有相机读写', str(caught.exception))
+            self.assertIn('이번에는 카메라 읽기/쓰기를 하지 않았습니다', str(caught.exception))
             self.assertNotIn('see the complete backend log', str(caught.exception))
 
     def test_audition_precheck_needs_a_converted_clip(self):

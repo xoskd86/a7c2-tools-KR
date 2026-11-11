@@ -24,13 +24,13 @@ PATHS = ('/usr/share/avsystemsound/custom-shutter.bin',
 def update_plan(camera,root,components,payload,zig):
     """Publish current selected bytes, including after a files-only old attempt."""
     old_csv=camera.read(PATHS[1],True) or b''
-    if len(old_csv)>=4096:raise ValueError('旧自定义声音配置过大，无法作为本次替换的依据')
+    if len(old_csv)>=4096:raise ValueError('이전 커스텀 사운드 구성이 너무 커서 이번 교체의 근거로 사용할 수 없습니다')
     try:active=current_sound(old_csv) if old_csv else None
     except ValueError:active=None
     same=bool(active and camera.read(active[0],True)==payload)
     names=['custom-shutter-a.bin','custom-shutter-b.bin','custom-shutter.bin']
     filename=Path(active[0]).name if same else next((name for name in names if name.encode() not in old_csv),None)
-    if filename is None:raise ValueError('旧自定义声音配置包含冲突的文件引用，请保留诊断包')
+    if filename is None:raise ValueError('이전 커스텀 사운드 구성에 충돌하는 파일 참조가 있습니다. 진단 패키지를 보존하세요')
     name='/usr/share/avsystemsound/'+filename
     csv=boot_sound.CSV.replace(b'custom-shutter.bin',Path(name).name.encode()).replace(b'0xEC0',('0x%X'%len(payload)).encode())
     Path(components['csv']).write_bytes(csv)
@@ -67,7 +67,7 @@ def replace_connected(camera,before,root,backup_copy,state,payload,zig):
     prior_audio=camera.read(active[0],True) if active else None
     same=prior_audio==payload
     filename=next((name for name in ('custom-shutter-a.bin','custom-shutter-b.bin','custom-shutter.bin') if name.encode() not in old_csv),None)
-    if not same and filename is None:raise ValueError('旧自定义声音配置包含冲突的文件引用')
+    if not same and filename is None:raise ValueError('이전 커스텀 사운드 구성에 충돌하는 파일 참조가 있습니다')
     name=active[0] if same else '/usr/share/avsystemsound/'+filename
     csv=old_csv if same else boot_sound.CSV.replace(b'custom-shutter.bin',Path(name).name.encode()).replace(b'0xEC0',('0x%X'%len(payload)).encode())
     Path(components['csv']).write_bytes(csv)

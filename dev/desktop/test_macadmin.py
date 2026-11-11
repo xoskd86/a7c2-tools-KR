@@ -88,7 +88,7 @@ def test_closed_terminal_or_wrong_password_never_starts_worker(tmp_path,monkeypa
     assert code==2
     assert state['error_type']=='MacAuthorizationCancelled'
     assert state['camera_io'] is False
-    assert '尚未开始' in state['error']
+    assert '시작되지 않았' in state['error']
 
 
 def test_terminal_that_cannot_open_reports_not_started(tmp_path,monkeypatch):
@@ -125,7 +125,7 @@ def test_worker_that_ends_without_outcome_is_unknown_not_cancelled(tmp_path,monk
     with patch.object(macadmin,'alive',return_value=False):
         code,_,state=execute(request,terminal(request,'closed',status=running))
     assert code==2 and state['error_type']=='MacWorkerEnded'
-    assert 'camera_io' not in state and '结果未知' in state['error']
+    assert 'camera_io' not in state and '결과를 알 수 없습니다' in state['error']
 
 
 def test_dead_worker_without_terminal_exit_marker_cannot_wait_forever(tmp_path,monkeypatch):

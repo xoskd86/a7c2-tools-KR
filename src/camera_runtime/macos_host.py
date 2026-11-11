@@ -14,7 +14,7 @@ import time
 STABLE_SECONDS=3
 STABLE_TIMEOUT=20
 NORMAL_RETURN_SECONDS=60
-MSC_PROMPT='若相机屏幕询问 USB 连接方式，请选择第 2 项「影像传输（MSC）」。'
+MSC_PROMPT='카메라 화면에서 USB 연결 방식을 물으면 2번 항목 「대용량 저장장치(MSC)」를 선택하세요.'
 
 
 def registry_nodes(tree):
@@ -54,7 +54,7 @@ def camera_media():
                 and node.get('IOObjectClass')=='IOUSBHostDevice'):
             found.setdefault(node.get('IORegistryEntryID',id(node)),node)
     cameras=list(found.values())
-    if len(cameras)!=1:raise RuntimeError('请只连接一台海量存储模式的 A7C II，再准备 USB 连接。'+MSC_PROMPT)
+    if len(cameras)!=1:raise RuntimeError('대용량 저장장치 모드의 A7C II 한 대만 연결한 뒤 USB 연결을 준비하세요.'+MSC_PROMPT)
     registry=cameras[0].get('IORegistryEntryID')
     if registry is None:raise RuntimeError('Missing camera USB registry identity')
     # Disk identifiers come only from the selected USB device's registry
@@ -92,7 +92,7 @@ def wait_for_stable_media():
         if topology!=previous:previous,stable_since=topology,now
         elif now-stable_since>=STABLE_SECONDS:return
         if now>=deadline:
-            raise RuntimeError('相机磁盘尚未稳定，尚未接管 USB。'+MSC_PROMPT+'等存取灯停止后重试。')
+            raise RuntimeError('카메라 디스크가 아직 안정되지 않아 USB를 넘겨받지 않았습니다.'+MSC_PROMPT+'액세스 램프가 꺼진 뒤 다시 시도하세요.')
         time.sleep(.5)
 
 
@@ -103,18 +103,18 @@ def unmount_camera():
     for disk in sorted(name for name,row in media.items() if row['whole']):
         now,current=camera_media()
         if now!=registry or set(current)!=set(media):
-            raise RuntimeError('相机或磁盘在卸载前发生变化，尚未接管 USB。请重新连接后重试。')
-        print('正在卸载相机磁盘（不拔线）：'+disk,flush=True)
+            raise RuntimeError('마운트 해제 전에 카메라 또는 디스크가 바뀌어 USB를 넘겨받지 않았습니다. 다시 연결한 뒤 재시도하세요.')
+        print('카메라 디스크를 마운트 해제하는 중(케이블은 뽑지 않음): '+disk,flush=True)
         result=subprocess.run(['/usr/sbin/diskutil','unmountDisk','/dev/'+disk],
                               capture_output=True,text=True,timeout=30)
         print(result.stdout,flush=True)
         if result.stderr:print(result.stderr,file=sys.stderr,flush=True)
         if result.returncode:
-            raise RuntimeError('无法卸载相机存储卷。请关闭照片、图像捕捉及使用存储卡的程序后重试。')
+            raise RuntimeError('카메라 저장 볼륨을 마운트 해제할 수 없습니다. 사진, 이미지 캡처 및 메모리 카드를 사용하는 프로그램을 닫고 다시 시도하세요.')
         unmounted.append(disk)
     now,current=camera_media()
     if now!=registry or set(current)!=set(media) or any(row['mount'] for row in current.values()):
-        raise RuntimeError('相机存储卷未能全部卸载，尚未接管 USB。请关闭照片、图像捕捉及使用存储卡的程序后重试。')
+        raise RuntimeError('카메라 저장 볼륨을 모두 마운트 해제하지 못해 USB를 넘겨받지 않았습니다. 사진, 이미지 캡처 및 메모리 카드를 사용하는 프로그램을 닫고 다시 시도하세요.')
     return dict(unmounted=unmounted,camera_firmware_written=False)
 
 
@@ -144,21 +144,21 @@ def wait_normal_return(find):
     the next connection checks the identity again.
     """
     import usb.core
-    print('服务模式已退出，等待普通 USB 连接（最多 %d 秒）。'%NORMAL_RETURN_SECONDS+MSC_PROMPT,flush=True)
+    print('서비스 모드를 종료했습니다. 일반 USB 연결을 기다리는 중(최대 %d초).'%NORMAL_RETURN_SECONDS+MSC_PROMPT,flush=True)
     deadline=time.monotonic()+NORMAL_RETURN_SECONDS
     last_error=None
     while True:
         try:device=find()
         except (RuntimeError,usb.core.USBError) as exc:
             detail=str(exc)
-            if detail!=last_error:print('等待普通 USB 重新枚举：'+detail,flush=True)
+            if detail!=last_error:print('일반 USB 재열거 대기 중: '+detail,flush=True)
             last_error=detail;device=None
         if device is not None:
             import usb.util
             usb.util.dispose_resources(device)
-            print('普通 USB 连接已恢复。',flush=True)
+            print('일반 USB 연결이 복구되었습니다.',flush=True)
             return True
         if time.monotonic()>=deadline:
-            print('%d 秒内未恢复普通 USB 连接。下次操作前请在相机上选择「影像传输（MSC）」。'%NORMAL_RETURN_SECONDS,flush=True)
+            print('%d초 안에 일반 USB 연결이 복구되지 않았습니다. 다음 작업 전에 카메라에서 「대용량 저장장치(MSC)」를 선택하세요.'%NORMAL_RETURN_SECONDS,flush=True)
             return False
         time.sleep(.5)

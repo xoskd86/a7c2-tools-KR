@@ -106,7 +106,7 @@ def purge_report(raw,build):
     v=nameworker.REPORT.unpack(raw)
     if (v[:5]!=(b'A7NMR001',1,5,9,build['count']) or any(v[i] for i in (5,6,7,8,9,10,17))
         or v[11]<=0 or any(v[13:16]) or v[16]>v[12]):
-        raise ValueError('旧任务名称备份清理未完成，相机名称文件没有改动；请完整断电重开后再点恢复。'
+        raise ValueError('이전 작업의 이름 백업 정리가 완료되지 않았으며, 카메라 이름 파일은 변경되지 않았습니다. 전원을 완전히 차단하고 다시 켠 뒤 복원을 누르세요.'
                          'Backup cleanup incomplete: '+repr(v[:18]))
     return {'mode':5,'matched':v[12],'removed':v[16]}
 
@@ -126,21 +126,21 @@ def program_report(raw,mode,build):
         raise ValueError('Checkpoint program operation incomplete: '+repr(v))
     return {'mode':mode,'windows':v[4]}
 
-REBOOT='请完整断电重开（拔 USB、关机、取下电池至少 1 分钟后装回开机），再接回 USB 点同一个恢复按钮。'
+REBOOT='전원을 완전히 차단하고 다시 켠 뒤(USB 분리, 전원 끄기, 배터리를 최소 1분간 분리했다가 다시 넣고 켜기), USB를 다시 연결하고 같은 복원 버튼을 누르세요.'
 
 
 def names_failure_detail(v,mode,build,raw):
     """User guidance for a failed name operation; the native report stays appended."""
     if v[5]==-28 and mode==2:
-        return ('相机 /usr 分区的临时空间用完了：已恢复 %d/%d 个名称文件，程序和已恢复的部分保持不变，'
-                '相机可以正常开机使用。旧文件占用的空间要断电后才释放。' % (v[15],build['count']) + REBOOT +
-                '只会处理剩下的部分。')
+        return ('카메라 /usr 파티션의 임시 공간이 모두 찼습니다: 이름 파일 %d/%d개를 복원했으며, 프로그램과 이미 복원된 부분은 그대로 유지됩니다. '
+                '카메라는 정상적으로 켜서 사용할 수 있습니다. 이전 파일이 차지한 공간은 전원을 차단해야 해제됩니다. ' % (v[15],build['count']) + REBOOT +
+                '남은 부분만 처리합니다.')
     if v[5]==-28:
-        return '写入前检查发现相机 /usr 分区临时空间不足，本次没有写入。' + REBOOT
+        return '쓰기 전 검사에서 카메라 /usr 파티션의 임시 공간이 부족해 이번에는 쓰지 않았습니다.' + REBOOT
     if v[5]==-30 and v[3]==1:
-        return ('相机 /usr 分区仍处于可写挂载，通常是上一次操作后还没有完整断电重开；本次没有写入。' + REBOOT)
+        return ('카메라 /usr 파티션이 아직 쓰기 가능 상태로 마운트되어 있습니다. 보통 지난 작업 후 전원을 완전히 차단했다가 다시 켜지 않은 경우입니다. 이번에는 쓰지 않았습니다.' + REBOOT)
     if names_completed_mount_busy(raw,mode,build):
-        return '名称内容已完成，但只读挂载忙碌；需要完成设置与重新加载准备后再重开核对。'
+        return '이름 내용은 완료되었지만 읽기 전용 마운트가 사용 중입니다. 설정과 재로드 준비를 마친 뒤 재시작해서 확인해야 합니다.'
     return ''
 
 

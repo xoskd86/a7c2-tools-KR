@@ -67,9 +67,9 @@ def test_support_off_produces_specific_instruction_and_next_enable_is_unblocked(
     def off(path,copy,zig,**options):
         path.mkdir(parents=True)
         trial.save(path,dict(old,journal=[]))
-        raise ValueError('电子快门声尚未开启，请先点击开启电子快门声')
+        raise ValueError('전자 셔터음이 아직 켜져 있지 않습니다. 먼저 "전자 셔터음 켜기"를 누르세요')
     with patch.object(trial,'preflight',side_effect=off), patch.object(buffer_trial,'run') as run:
-        with pytest.raises(ValueError,match='尚未开启'):cli.audition(root,state)
+        with pytest.raises(ValueError,match='아직 켜져 있지 않습니다'):cli.audition(root,state)
         run.assert_not_called()
     with patch.object(trial,'preflight',return_value={'phase':'written','adopted_existing_enabled':True}), \
          patch.object(trial,'change') as write:
@@ -160,7 +160,7 @@ def test_actual_sound_connector_waits_only_for_enumeration_never_replays_auth(sc
     transport=SimpleNamespace(Session=Mock(return_value=link),RecoverySession=Mock(return_value=link),
         usb=SimpleNamespace(util=SimpleNamespace(dispose_resources=Mock())),
         libusb_package=SimpleNamespace(find_library=Mock()))
-    if scenario=='session_error':link.__enter__.side_effect=ValueError('目前機身與備份機身不同')
+    if scenario=='session_error':link.__enter__.side_effect=ValueError('현재 카메라 본체가 백업한 본체와 다릅니다')
     calls=[]
     def find(**kwargs):
         calls.append(kwargs['idProduct'])

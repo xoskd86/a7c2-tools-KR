@@ -39,5 +39,5 @@ def test_restore_without_any_usable_record_points_to_factory_restore(tmp_path):
     install_job(root, 'only', 'needs_review')
     with patch.object(trial, 'factory', side_effect=AssertionError('No camera')), \
          patch.object(boot_trial, 'restore', side_effect=AssertionError('No restore')):
-        with pytest.raises(ValueError, match='恢复原厂功能'):
+        with pytest.raises(ValueError, match='공장 기능 복원'):
             cli.restore_sound(root, state)

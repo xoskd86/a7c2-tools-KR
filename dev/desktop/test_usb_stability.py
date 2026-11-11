@@ -44,7 +44,7 @@ def test_good_connection_reads_both_programs_until_minimum_time_and_rounds(tmp_p
     assert report['total_bytes']==12*(len(AP)+len(CP)) and report['seconds']>=120
     assert not report['camera_firmware_written'] and not report['camera_settings_written']
     assert not report['native_worker_executed']
-    assert '不保证' in report['note']
+    assert '보장하지 않' in report['note']
 
 
 def test_connection_time_does_not_count_towards_minimum_duration(tmp_path):
@@ -62,7 +62,7 @@ def test_fast_connection_still_runs_minimum_rounds(tmp_path):
 
 def test_round_cap_before_minimum_duration_is_incomplete_not_passed(tmp_path):
     clock=Clock();camera=Camera(good(100),clock,cost=0.0)
-    with pytest.raises(RuntimeError,match='未完成'):
+    with pytest.raises(RuntimeError,match='완료되지 않았'):
         usbcheck.run(tmp_path,factory=lambda:camera,clock=clock,max_rounds=7)
     report=load(tmp_path)
     assert report['phase']=='INCOMPLETE' and len(report['rounds'])==7 and report['failed_round'] is None
@@ -73,7 +73,7 @@ def test_round_cap_before_minimum_duration_is_incomplete_not_passed(tmp_path):
                          ids=['timeout','disconnect','bytes-differ','truncated'])
 def test_bad_connection_stops_at_first_failure_with_original_error(tmp_path,failure):
     clock=Clock();camera=Camera([AP,CP,failure,CP],clock)
-    with pytest.raises(RuntimeError,match='第 2 轮'):
+    with pytest.raises(RuntimeError,match='2회차'):
         usbcheck.run(tmp_path,factory=lambda:camera,clock=clock)
     report=load(tmp_path)
     assert report['phase']=='FAILED' and report['failed_round']==2 and report['failed_stage']=='reading'
@@ -84,7 +84,7 @@ def test_bad_connection_stops_at_first_failure_with_original_error(tmp_path,fail
 def test_degraded_link_fails_even_when_bytes_match(tmp_path):
     # 20 MiB in 15 s is about 1.3 MB/s, the range of a USB 1.1 or hub-degraded link.
     clock=Clock();camera=Camera(good(10),clock,cost=15.0)
-    with pytest.raises(RuntimeError,match='低于 2.0 MB/s'):
+    with pytest.raises(RuntimeError,match='2.0 MB/s보다 낮습니다'):
         usbcheck.run(tmp_path,factory=lambda:camera,clock=clock)
     camera.mark_unknown.assert_called_once()
 
@@ -97,7 +97,7 @@ def test_slow_but_healthy_link_passes(tmp_path):
 
 def test_connection_failure_is_reported_as_connecting_stage(tmp_path):
     clock=Clock();camera=Camera([],clock,connect=3.0,fail_connect=OSError('service entry failed'))
-    with pytest.raises(RuntimeError,match='连接阶段'):
+    with pytest.raises(RuntimeError,match='연결 단계'):
         usbcheck.run(tmp_path,factory=lambda:camera,clock=clock)
     report=load(tmp_path)
     assert report['failed_stage']=='connecting' and report['failed_round'] is None and report['seconds']==0

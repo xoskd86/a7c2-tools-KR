@@ -116,9 +116,9 @@ class OriginalFirmware(unittest.TestCase):
     def test_actual_patch_position_conflict_is_not_overwritten(self):
         source=self.layout._ap_target(self.ap,1)
         wrong=bytearray(source);wrong[0x4b2ed19]=0x77
-        with self.assertRaisesRegex(ValueError,'衝突'):compat.plan(bytes(wrong),self.lutcp)
+        with self.assertRaisesRegex(ValueError,'충돌'):compat.plan(bytes(wrong),self.lutcp)
         wrong=bytearray(self.lutcp);wrong[0x138814]^=1
-        with self.assertRaisesRegex(ValueError,'衝突'):compat.plan(source,bytes(wrong))
+        with self.assertRaisesRegex(ValueError,'충돌'):compat.plan(source,bytes(wrong))
     def test_modified_stock_programs_also_do_not_require_source_hashes(self):
         changed_ap=bytearray(self.ap);changed_ap[0x70000]^=1
         changed_cp=bytearray(self.cp);changed_cp[0x70000]^=1
@@ -146,6 +146,6 @@ class OriginalFirmware(unittest.TestCase):
             self.assertIn('#define BYTE_WINDOWS_ONLY 1',header)
             self.assertNotIn('original_hashes',header)
             candidate=root/'candidate/appFw.so';candidate.write_bytes(b'changed')
-            with self.assertRaisesRegex(ValueError,'候選'):compat.validate(root,{'compatibility':spec})
+            with self.assertRaisesRegex(ValueError,'후보'):compat.validate(root,{'compatibility':spec})
 
 if __name__=='__main__':unittest.main()

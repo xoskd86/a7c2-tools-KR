@@ -103,7 +103,7 @@ class LookRoutingTests(unittest.TestCase):
                 self.assertEqual(window.look_editor.values(), operations)
                 self.assertFalse(window.look_editor.isEnabled())
                 self.assertTrue(window.look_button.isEnabled())
-                self.assertNotIn('添加操作项后继续', window.look_button.text())
+                self.assertNotIn('작업 항목을 추가한 뒤 계속', window.look_button.text())
                 self.assertFalse(requested.exists())
 
                 restarted = self.window()

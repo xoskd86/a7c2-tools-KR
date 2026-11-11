@@ -17,7 +17,7 @@ MIN_ROUNDS=5
 MAX_ROUNDS=60
 MIN_MB_PER_SECOND=2.0
 MIN_BYTES,MAX_BYTES=1024*1024,256*1024*1024
-NOTE='通过只说明这段时间内连续只读传输稳定；不保证刷写期间一定不掉线，也不代表线材认证。'
+NOTE='통과는 이 시간 동안 연속 읽기 전용 전송이 안정적이었다는 뜻일 뿐이며, 플래시 중 연결이 끊기지 않는다고 보장하지 않고 케이블 인증을 의미하지도 않습니다.'
 
 
 class Incomplete(RuntimeError):
@@ -43,10 +43,10 @@ def run(job,*,factory=None,clock=time.monotonic,min_seconds=MIN_SECONDS,min_roun
             baseline={}
             while number<min_rounds or elapsed()<min_seconds:
                 if number>=max_rounds:
-                    raise Incomplete('已读 %d 轮，达到轮数上限，但连续读取只持续 %.0f 秒，未满 %d 秒；本次不算通过'%
+                    raise Incomplete('%d회 읽어 횟수 상한에 도달했지만 연속 읽기가 %.0f초만 지속되어 %d초에 못 미쳤습니다. 이번에는 통과로 보지 않습니다'%
                                      (number,elapsed(),min_seconds))
                 number+=1
-                print('USB 稳定性检测：第 %d 轮只读读取程序文件（至少 %d 轮、连续 %d 秒），不写固件或设置。'%
+                print('USB 안정성 검사: %d회차 프로그램 파일 읽기 전용 읽기(최소 %d회, 연속 %d초). 펌웨어나 설정에는 쓰지 않습니다.'%
                       (number,min_rounds,min_seconds),flush=True)
                 reads=[]
                 for path in PATHS:
@@ -55,12 +55,12 @@ def run(job,*,factory=None,clock=time.monotonic,min_seconds=MIN_SECONDS,min_roun
                         raw=camera.read(path)
                         seconds=clock()-begin
                         if raw is None or not MIN_BYTES<=len(raw)<=MAX_BYTES:
-                            raise ValueError('程序文件未完整读回：'+path)
+                            raise ValueError('프로그램 파일 전체 리드백이 되지 않았습니다: '+path)
                         if path in baseline and raw!=baseline[path]:
-                            raise ValueError('重复读回的字节不一致：'+path)
+                            raise ValueError('반복 리드백한 바이트가 일치하지 않습니다: '+path)
                         rate=len(raw)/1048576/seconds if seconds>0 else None
                         if rate is not None and rate<min_rate:
-                            raise ValueError('读取 %s 只有 %.2f MB/s，低于 %.1f MB/s；连接可能经过 USB 1.1、扩展坞或线材质量较差'%
+                            raise ValueError('%s 읽기 속도가 %.2f MB/s로 %.1f MB/s보다 낮습니다. USB 1.1, 도킹 스테이션 또는 품질이 낮은 케이블을 거치고 있을 수 있습니다'%
                                              (path,rate,min_rate))
                     except BaseException:
                         mark=getattr(camera,'mark_unknown',None)
@@ -78,7 +78,7 @@ def run(job,*,factory=None,clock=time.monotonic,min_seconds=MIN_SECONDS,min_roun
                       slowest_mb_per_second=min(speeds) if speeds else None,
                       fastest_mb_per_second=max(speeds) if speeds else None)
         save()
-        print('%d 轮只读传输均完成，共 %.1f MB，连续读取 %.0f 秒，逐轮字节一致。%s'%
+        print('%d회 읽기 전용 전송을 모두 마쳤습니다. 총 %.1f MB, 연속 읽기 %.0f초, 회차별 바이트 일치. %s'%
               (len(report['rounds']),report['total_bytes']/1048576,report['seconds'],NOTE),flush=True)
         return report
     except BaseException as exc:
@@ -90,6 +90,6 @@ def run(job,*,factory=None,clock=time.monotonic,min_seconds=MIN_SECONDS,min_roun
                       error_type=type(exc).__name__,error=str(exc),camera_io_ended=True,seconds=round(elapsed(),3))
         save()
         if incomplete:
-            raise RuntimeError('USB 稳定性检测未完成：%s。本次没有固件或设置写入。'%str(exc)) from exc
-        raise RuntimeError('USB 稳定性检测未通过（%s）：%s。请换线或直连电脑 USB 接口后重测；本次没有固件或设置写入。'%
-                           ('第 %d 轮'%number if connected else '连接阶段',str(exc))) from exc
+            raise RuntimeError('USB 안정성 검사가 완료되지 않았습니다: %s. 이번에는 펌웨어나 설정에 쓰지 않았습니다.'%str(exc)) from exc
+        raise RuntimeError('USB 안정성 검사를 통과하지 못했습니다(%s): %s. 케이블을 바꾸거나 컴퓨터 USB 포트에 직접 연결한 뒤 다시 검사하세요. 이번에는 펌웨어나 설정에 쓰지 않았습니다.'%
+                           ('%d회차'%number if connected else '연결 단계',str(exc))) from exc

@@ -55,10 +55,10 @@ QToolTip {background:$raised;color:$text;border:1px solid $strong;padding:6px;}
 '''
 
 WINDOW = _sheet('''
-QWidget {font-family:"Segoe UI","PingFang SC","Microsoft YaHei";font-size:13px;color:$text;background:$window;}
+QWidget {font-family:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","PingFang SC","Microsoft YaHei";font-size:13px;color:$text;background:$window;}
 QLineEdit,QSpinBox,QDoubleSpinBox,QComboBox,QPlainTextEdit {background:$surface;border:1px solid $border;border-radius:6px;
     padding:7px;selection-background-color:$selection;selection-color:$text;}
-QPlainTextEdit {background:$log;color:$log_text;font-family:"Cascadia Mono","Consolas","Menlo","Microsoft YaHei";}
+QPlainTextEdit {background:$log;color:$log_text;font-family:"Cascadia Mono","Consolas","Menlo","Malgun Gothic","Apple SD Gothic Neo","Microsoft YaHei";}
 QPushButton {background:$raised;border:1px solid $border;border-radius:6px;padding:8px 13px;color:$text;}
 QListWidget {background:$sidebar;border:0;border-right:1px solid $border;padding:10px;outline:0;}
 QListWidget::item {padding:16px 12px;border-radius:7px;color:$nav_text;}
@@ -83,7 +83,7 @@ QTextBrowser {background:$surface;border:1px solid $border;border-radius:6px;}
 ''' + _COMMON)
 
 EDITOR = _sheet('''
-QWidget {font-family:"Segoe UI","Microsoft YaHei";font-size:13px;color:$text;background:$window;}
+QWidget {font-family:"Segoe UI","Malgun Gothic","Apple SD Gothic Neo","Microsoft YaHei";font-size:13px;color:$text;background:$window;}
 QLabel[title="true"] {font-size:27px;font-weight:650;color:$text;}
 QLabel[badge="true"] {background:$accent_soft;color:$accent;border-radius:5px;padding:6px 10px;}
 QFrame[card="true"] {background:$group;border:1px solid $border;border-radius:9px;}

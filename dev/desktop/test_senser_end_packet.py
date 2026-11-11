@@ -120,7 +120,7 @@ def test_session_failure_marks_unhealthy_and_blocks_further_commands():
     called=[]
     def fail():called.append(1);raise transport.SenserProtocolError('bad packet')
     with pytest.raises(transport.SenserProtocolError):session.call(fail)
-    with pytest.raises(RuntimeError,match='未知'):session.call(fail)
+    with pytest.raises(RuntimeError,match='알 수 없'):session.call(fail)
     assert called==[1] and not session.healthy
 
 

@@ -45,7 +45,7 @@ class IntegrationTests(unittest.TestCase):
         report=dict(devices=[],errors=[dict(stage='windows-pnp',error='query-timeout')],
             libusb_devices=[dict(pid='0e8a',product='ILCE-7CM2')])
         with patch.object(drivers.sys,'platform','win32'),patch.object(drivers,'installer') as installer:
-            with self.assertRaisesRegex(RuntimeError,'Windows 驱动查询失败.*054C:0E8A.*query-timeout'):
+            with self.assertRaisesRegex(RuntimeError,'Windows 드라이버 조회에 실패했습니다.*054C:0E8A.*query-timeout'):
                 drivers.install({'pid':'0e8a'},self.root,report=report)
         installer.assert_not_called()
 

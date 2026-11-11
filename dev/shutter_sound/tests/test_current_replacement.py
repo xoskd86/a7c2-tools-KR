@@ -92,7 +92,7 @@ def test_stale_sound_worker_files_are_archived_and_replaced_without_reading_old_
 def test_occupied_native_loader_is_not_overwritten_or_automatically_stopped(tmp_path):
     root,state=sound_cli.workspace(tmp_path/'sound',True,tmp_path/'backup')
     files={'/tmp/jiritsu/libJit.so':b'execution entry in use'};cam=camera(files)
-    with patch.object(trial,'factory',return_value=cam),pytest.raises(RuntimeError,match='执行入口当前仍被占用'):
+    with patch.object(trial,'factory',return_value=cam),pytest.raises(RuntimeError,match='실행 진입점이 아직 사용 중'):
         with replacement.CurrentRequest(root,state,'install') as request:request.open(None)
     cam.temp_remove.assert_not_called()
     assert cam.link.mutating is True
@@ -103,7 +103,7 @@ def test_changing_camera_files_stop_without_deleting_them(tmp_path):
     cam=camera({});calls=[b'first',b'changed']
     def read(path,missing=False):return calls.pop(0) if path=='/tmp/jiritsu/shutter.staged.so' else None
     cam.read.side_effect=read
-    with patch.object(trial,'factory',return_value=cam),pytest.raises(RuntimeError,match='仍在变化'):
+    with patch.object(trial,'factory',return_value=cam),pytest.raises(RuntimeError,match='계속 바뀌고 있'):
         with replacement.CurrentRequest(root,state,'audition') as request:request.open(None)
     cam.temp_remove.assert_not_called()
 
