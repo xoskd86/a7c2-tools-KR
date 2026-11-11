@@ -114,7 +114,8 @@ per-feature guides or research notes; record decisions in the changelog.
 
 This fork (`xoskd86/a7c2-tools-KR`) shows the desktop app, its dialogs and the
 worker/log messages in Korean, and adds `README.ko.md`. Only user-visible strings
-differ from upstream; camera bytes, checks and workflows are unchanged. Keep new
+differ from upstream, except the owner-approved Windows driverless-`0336` detection
+in driver setup (November 11); camera bytes and checks are unchanged. Keep new
 user-visible strings in Korean, keep button names quoted in messages identical to
 the button labels, and update the matching test assertions with them.
 `.github/README.md` is the Korean README that GitHub shows on the repository

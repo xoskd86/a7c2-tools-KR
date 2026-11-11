@@ -4,7 +4,7 @@
 
 ## 3.0.3-ko.2 — Windows first-time service driver fix — 2026-11-11
 
-- "Prepare two-stage drivers & test connection" no longer misses a first-time service identity on Windows. libusb does not list `054C:0336` before it has a driver, so the `0336` driver step never started; the session waited for `0E8A` and stopped with "service ID did not appear", leaving the camera in service mode. During this setup only, Windows SetupAPI enumeration (no USB open) now supplements libusb, and the wait for the service interface restarts after the driver step. Other sessions are unchanged. Reported on one Windows 11 body, which then needed a manual Zadig install; offline regression tests cover the fix. The automatic first-time install has not yet been physically retested.
+- "Prepare two-stage drivers & test connection" no longer misses a first-time service identity on Windows. On that PC libusb did not list `054C:0336` before it had a driver, so the `0336` driver step never started; the session waited for `0E8A` and stopped with "service ID did not appear", leaving the camera in service mode. During this setup only, Windows SetupAPI enumeration (no USB open) now supplements libusb, and the wait for the service interface restarts after the driver step. A failed driver step (for example a declined administrator prompt) now stops with guidance not to authenticate again. Other sessions are unchanged. Reported on one Windows 11 body, which then needed a manual Zadig install; offline regression tests cover the fix. The automatic first-time install has not yet been physically retested.
 
 ## Standard license update — 2026-10-25
 

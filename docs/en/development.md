@@ -88,7 +88,7 @@ A replacement frontend only needs `jobs.new_job(action, arguments)` plus `jobs.w
 **USB service entry** (`camera_runtime/transport.Session`):
 1. Check the normal USB product string.
 2. Authenticate.
-3. Wait for `0336`. During Windows driver setup (`usb_prepare`), Windows SetupAPI enumeration supplements libusb, which cannot list a `0336` that has no driver yet; the `0336` driver step then starts and the open wait restarts after it.
+3. Wait for `0336`. During Windows driver setup (`usb_prepare`), Windows SetupAPI enumeration supplements libusb, because libusb did not list a driverless `0336` on a reported Windows 11 PC; the `0336` driver step then starts and the open wait restarts after it. A failed driver step stops without authenticating again.
 4. Authenticate again.
 5. Bind the body by property `00e70003` (hex-text serial digest).
 

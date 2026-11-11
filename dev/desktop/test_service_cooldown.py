@@ -147,6 +147,52 @@ def test_windows_driverless_service_is_seen_through_host_enumeration(monkeypatch
     assert camera.auths==1 and modes==['service']
 
 
+def _driverless_windows(monkeypatch):
+    camera=Camera(monkeypatch,bounces=0,platform='win32')
+    monkeypatch.setattr(transport,'_sony_pids',real_sony_pids)
+    monkeypatch.setattr(transport.usb.backend.libusb1,'get_backend',lambda find_library:object())
+    monkeypatch.setattr(transport.usb.core,'find',lambda find_all,idVendor,backend:
+                        [SimpleNamespace(idProduct=0x0e8a)] if camera.state()=='msc' else [])
+    monkeypatch.setattr(transport,'HOST_SONY_PIDS',lambda:['0336'] if camera.state()=='service' else [])
+    return camera
+
+
+def test_failed_service_driver_step_stops_without_reauthentication(monkeypatch):
+    camera=_driverless_windows(monkeypatch)
+    def setup():raise PermissionError('Windows administrator permission was not granted')
+    monkeypatch.setattr(transport,'SERVICE_DRIVER_SETUP',setup)
+    with pytest.raises(RuntimeError,match='드라이버 준비에 실패했습니다.*administrator.*다시 인증하지 마세요'):
+        transport.Session().__enter__()
+    assert camera.auths==1
+
+
+def test_service_still_unopenable_after_driver_step_does_not_reauthenticate(monkeypatch):
+    camera=_driverless_windows(monkeypatch)
+    get=camera.get_device
+    rebinding=[]
+    def open_device(pid):
+        if pid==0x0336:
+            rebinding.append(camera.now)
+            if len(rebinding)==1:raise transport.usb.core.USBError('rebinding')
+            raise RuntimeError('still no usable driver')
+        return get(pid)
+    monkeypatch.setattr(transport,'get_device',open_device)
+    monkeypatch.setattr(transport,'SERVICE_DRIVER_SETUP',lambda:None)
+    with pytest.raises(RuntimeError,match='0336이 나타났지만'):transport.Session().__enter__()
+    assert camera.auths==1 and len(rebinding)>2
+
+
+def test_usb_error_before_driver_step_is_not_swallowed(monkeypatch):
+    camera=Camera(monkeypatch,bounces=0)
+    get=camera.get_device
+    def open_device(pid):
+        if pid==0x0336:raise transport.usb.core.USBError('pipe error')
+        return get(pid)
+    monkeypatch.setattr(transport,'get_device',open_device)
+    with pytest.raises(transport.usb.core.USBError):transport.Session().__enter__()
+    assert camera.auths==1
+
+
 def test_driverless_service_without_host_enumeration_keeps_old_report(monkeypatch):
     """CLI sessions set no host enumeration; libusb's view alone is unchanged."""
     camera=Camera(monkeypatch,bounces=0,msc_returns=False)
