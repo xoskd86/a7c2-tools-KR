@@ -46,7 +46,7 @@ class AudioSelectionTests(unittest.TestCase):
             # 10 ms of near-silence (dither), then a tone: a typical file opening.
             native_codec.write_wav(source, [(-1) ** i for i in range(240)] +
                                    [round(8000 * math.sin(i * .1)) for i in range(2400)], 24000)
-            with self.assertRaisesRegex(ValueError, '几乎没有声音.*起点'):
+            with self.assertRaisesRegex(ValueError, '소리가 거의 없습니다.*시작점'):
                 media.convert(source, root / 'silent', start=0, duration=.01)
             self.assertFalse((root / 'silent').exists())
             media.convert(source, root / 'tone', start=.01, duration=.05)

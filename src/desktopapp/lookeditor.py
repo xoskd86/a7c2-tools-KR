@@ -29,27 +29,27 @@ class Operation(W.QFrame):
         self.file_path=''
         box=W.QVBoxLayout(self);box.setContentsMargins(17,15,17,15);box.setSpacing(12)
         top=W.QHBoxLayout();box.addLayout(top)
-        top.addWidget(label('目标槽位',muted=True))
+        top.addWidget(label('대상 슬롯',muted=True))
         self.slot=Choice()
-        for number in range(1,7):self.slot.addItem('自订 '+str(number),number)
+        for number in range(1,7):self.slot.addItem('커스텀 '+str(number),number)
         self.slot.setCurrentIndex(slot-1);self.slot.setFixedWidth(115)
         top.addWidget(self.slot);top.addSpacing(18)
-        top.addWidget(label('本次操作',muted=True))
-        self.action=Choice();self.action.addItems(['恢复 ST 默认','写入 A7Look'])
+        top.addWidget(label('이번 작업',muted=True))
+        self.action=Choice();self.action.addItems(['ST 기본값으로 복원','A7Look 쓰기'])
         self.action.setFixedWidth(160);top.addWidget(self.action);top.addStretch()
-        remove=W.QPushButton('移除这项');remove.setProperty('quiet',True)
-        remove.setToolTip('仅移除此操作项，该槽保持原样')
+        remove=W.QPushButton('이 항목 제거');remove.setProperty('quiet',True)
+        remove.setToolTip('이 작업 항목만 제거하며, 해당 슬롯은 그대로 유지됩니다')
         remove.clicked.connect(lambda:self.remove_requested.emit(self));top.addWidget(remove)
         self.details=W.QStackedWidget();self.details.setObjectName('operationStack');box.addWidget(self.details)
         restore=W.QWidget();restore.setObjectName('operationDetails');restore_box=W.QHBoxLayout(restore);restore_box.setContentsMargins(0,0,0,0)
-        note=label('此槽恢复为 ST 默认；不会找回导入前的旧配方。',muted=True)
+        note=label('이 슬롯을 ST 기본값으로 복원합니다. 가져오기 전의 이전 레시피는 되찾지 않습니다.',muted=True)
         restore_box.addWidget(note);restore_box.addStretch();self.details.addWidget(restore)
         write=W.QWidget();write.setObjectName('operationDetails');grid=W.QGridLayout(write);grid.setContentsMargins(0,0,0,0);grid.setHorizontalSpacing(12);grid.setVerticalSpacing(6)
-        grid.addWidget(label('A7Look 文件',muted=True),0,0)
-        grid.addWidget(label('机内显示名称',muted=True),0,2)
-        self.file=W.QLineEdit();self.file.setReadOnly(True);self.file.setPlaceholderText('请选择 .a7look 文件')
-        self.browse=W.QPushButton('选择文件…');self.browse.clicked.connect(self.choose_file)
-        self.name=W.QLineEdit();self.name.setPlaceholderText('留空沿用文件内名称')
+        grid.addWidget(label('A7Look 파일',muted=True),0,0)
+        grid.addWidget(label('카메라 표시 이름',muted=True),0,2)
+        self.file=W.QLineEdit();self.file.setReadOnly(True);self.file.setPlaceholderText('.a7look 파일을 선택하세요')
+        self.browse=W.QPushButton('파일 선택…');self.browse.clicked.connect(self.choose_file)
+        self.name=W.QLineEdit();self.name.setPlaceholderText('비워 두면 파일 내 이름 사용')
         grid.addWidget(self.file,1,0);grid.addWidget(self.browse,1,1);grid.addWidget(self.name,1,2)
         grid.setColumnStretch(0,3);grid.setColumnStretch(2,2);self.details.addWidget(write)
         self.action.currentIndexChanged.connect(self.update_mode)
@@ -65,7 +65,7 @@ class Operation(W.QFrame):
 
     def choose_file(self):
         from .profilelibrary import location
-        path=W.QFileDialog.getOpenFileName(self,'选择 A7Look 文件',self.file_path or str(location()),'A7Look (*.a7look)')[0]
+        path=W.QFileDialog.getOpenFileName(self,'A7Look 파일 선택',self.file_path or str(location()),'A7Look (*.a7look)')[0]
         if path:self.set_file(path)
 
     def set_file(self,path):
@@ -83,15 +83,15 @@ class LookEditor(W.QWidget):
     def __init__(self):
         super().__init__();self.rows=[];self._loading=False;self.setStyleSheet(STYLE)
         box=W.QVBoxLayout(self);box.setContentsMargins(0,0,0,0);box.setSpacing(12)
-        top=W.QHBoxLayout();self.add=W.QPushButton('+ 添加操作项')
+        top=W.QHBoxLayout();self.add=W.QPushButton('+ 작업 항목 추가')
         self.add.clicked.connect(lambda:self.add_row());top.addWidget(self.add)
-        top.addWidget(label('新增项默认“恢复 ST 默认”，可切换为写入。',muted=True));top.addStretch();box.addLayout(top)
+        top.addWidget(label('새 항목의 기본값은 "ST 기본값으로 복원"이며, 쓰기로 바꿀 수 있습니다.',muted=True));top.addStretch();box.addLayout(top)
         self.row_box=W.QVBoxLayout();self.row_box.setSpacing(12);box.addLayout(self.row_box)
         self.empty=W.QFrame();self.empty.setProperty('card',True)
         empty_box=W.QVBoxLayout(self.empty);empty_box.setContentsMargins(20,25,20,25)
-        empty_title=label('尚未添加操作项');empty_title.setAlignment(QtCore.Qt.AlignCenter)
+        empty_title=label('아직 추가한 작업 항목이 없습니다');empty_title.setAlignment(QtCore.Qt.AlignCenter)
         empty_title.setStyleSheet('font-size:17px;font-weight:600;');empty_box.addWidget(empty_title)
-        note=label('点击“添加操作项”，选择目标槽位和操作。当前六个槽位均保持原样。',muted=True)
+        note=label('"작업 항목 추가"를 눌러 대상 슬롯과 작업을 선택하세요. 현재 6개 슬롯은 모두 그대로 유지됩니다.',muted=True)
         note.setWordWrap(True);note.setAlignment(QtCore.Qt.AlignCenter);empty_box.addWidget(note)
         self.row_box.addWidget(self.empty)
         summary=W.QFrame();summary.setProperty('card',True)
@@ -127,9 +127,9 @@ class LookEditor(W.QWidget):
 
     def errors(self):
         values=self.values();slots=[r['slot'] for r in values];errors=[]
-        if len(slots)!=len(set(slots)):errors.append('同一槽位只能添加一个操作。')
+        if len(slots)!=len(set(slots)):errors.append('같은 슬롯에는 작업을 하나만 추가할 수 있습니다.')
         missing=[str(r['slot']) for r in values if r['action']=='write' and not r['path']]
-        if missing:errors.append('请为自订 '+'、'.join(missing)+' 选择 A7Look 文件。')
+        if missing:errors.append('커스텀 '+', '.join(missing)+'에 사용할 A7Look 파일을 선택하세요.')
         return errors
 
     def update_summary(self):
@@ -137,8 +137,8 @@ class LookEditor(W.QWidget):
         self.empty.setVisible(not values);self.add.setEnabled(len(values)<6)
         for row in self.rows:
             for i in range(6):row.slot.model().item(i).setEnabled(i+1 not in used or i+1==row.slot.currentData())
-        self.summary.setText('本次更改 %d 个槽位：%d 项写入 · %d 项恢复'%(len(values),writes,len(values)-writes))
+        self.summary.setText('이번에 %d개 슬롯 변경: 쓰기 %d개 · 복원 %d개'%(len(values),writes,len(values)-writes))
         kept=[str(n) for n in range(1,7) if n not in used]
-        self.preserved.setText('保持原样：'+('自订 '+'、'.join(kept) if kept else '无（六个槽位均在本次清单中）'))
+        self.preserved.setText('그대로 유지: '+('커스텀 '+', '.join(kept) if kept else '없음(6개 슬롯 모두 이번 목록에 있음)'))
         self.validation.setText(' '.join(self.errors()));self.validation.setVisible(bool(self.errors()))
         if not self._loading:self.changed.emit()

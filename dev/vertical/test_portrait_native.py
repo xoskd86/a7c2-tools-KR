@@ -152,7 +152,7 @@ def test_mode_zero_never_changes_files_mounts_or_process_memory(candidate):
 def test_interrupted_metadata_write_resumes_from_exact_current_bytes(candidate):
     offset=candidate[1][0]['windows'][1]['offset']
     raw,partial,_,state=execute(candidate,1,fail_window=(0,offset,3))
-    with pytest.raises(ValueError,match='操作停止'):portraitworker.decode(raw,1)
+    with pytest.raises(ValueError,match='작업 중지'):portraitworker.decode(raw,1)
     assert partial[2]==candidate[2][2] and state['ro']
     raw,files,_,_=execute(candidate,1,partial)
     assert portraitworker.decode(raw,1)['completed']==3 and files==candidate[3]

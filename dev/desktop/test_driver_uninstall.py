@@ -34,7 +34,7 @@ class DriverUninstallTests(unittest.TestCase):
                  patch.object(drivers,'installer') as install,patch.object(drivers,'elevate_request') as elevate,redirect_stdout(output):
                 result=drivers.install({'pid':pid},self.root)
             self.assertFalse(result['driver_changed']);install.assert_not_called();elevate.assert_not_called()
-            self.assertEqual(scan.call_count,1);self.assertIn('跳过驱动安装',output.getvalue())
+            self.assertEqual(scan.call_count,1);self.assertIn('드라이버 설치와 관리자 요청을 건너뜁니다',output.getvalue())
             with patch.object(drivers.sys,'platform','win32'),patch.object(drivers,'scan') as scan:
                 drivers.install({'pid':pid},self.root,report=report)
             scan.assert_not_called()

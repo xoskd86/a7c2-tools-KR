@@ -30,7 +30,7 @@ class PresetTests(unittest.TestCase):
 
     def test_missing_asset_stops_before_driver_or_device_actions(self):
         dispatch = Mock()
-        with patch.object(presets, 'ROOT', self.root), self.assertRaisesRegex(ValueError, '尚未连接相机'):
+        with patch.object(presets, 'ROOT', self.root), self.assertRaisesRegex(ValueError, '아직 카메라에 연결하지 않았습니다'):
             allinone.run(dict(workspace=str(self.root / 'setup'), firmware='2.01', power_confirmed=True,
                 options=dict(preset_pack=presets.PACK)), dispatch=dispatch)
         dispatch.assert_not_called()
@@ -75,5 +75,5 @@ class PresetTests(unittest.TestCase):
         real_read = lookfile.read
         def swapped(path):
             doc = real_read(path); doc['name'] = 'Wrong'; return doc
-        with patch.object(lookfile, 'read', side_effect=swapped), self.assertRaisesRegex(ValueError, '名称'):
+        with patch.object(lookfile, 'read', side_effect=swapped), self.assertRaisesRegex(ValueError, '이름'):
             presets.resolve(dict(preset_pack=presets.PACK))

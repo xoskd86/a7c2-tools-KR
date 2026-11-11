@@ -26,9 +26,9 @@ def supersede_temporary(camera, folder, record):
     actual={name:raw for name,raw in actual.items() if raw is not None}
     if not actual:return 0
     if camera.temp_read('libJit.so',True) is not None:
-        raise ValueError('相机执行插件仍存在，不能在执行期间覆盖；本次尚未恢复写入，请结束连接后完整断电再重试')
+        raise ValueError('카메라 실행 플러그인이 아직 남아 있어 실행 중에는 덮어쓸 수 없습니다. 이번에는 복원 쓰기를 하지 않았습니다. 연결을 끝낸 뒤 전원을 완전히 차단하고 다시 시도하세요')
     if camera.read('/etc/ld.so.preload',True):
-        raise ValueError('相机存在启用中的 preload，尚未覆盖临时工作文件或开始恢复写入')
+        raise ValueError('카메라에 활성화된 preload가 있어 임시 작업 파일을 덮어쓰거나 복원 쓰기를 시작하지 않았습니다')
     folder=Path(folder);folder.mkdir(parents=True,exist_ok=True)
     # Save every captured byte before removing anything on the camera. These
     # are tiny private worker/request/report files, not a body firmware backup.
@@ -42,10 +42,10 @@ def supersede_temporary(camera, folder, record):
     # Check the whole namespace before deletion. A newly appearing report or
     # loader means it is changing, not merely leftover data.
     if camera.temp_read('libJit.so',True) is not None:
-        raise ValueError('相机执行插件出现，已保存诊断，未覆盖工作文件')
+        raise ValueError('카메라 실행 플러그인이 나타나 진단을 저장했으며, 작업 파일은 덮어쓰지 않았습니다')
     for name in names:
         if camera.temp_read(name,True)!=actual.get(name):
-            raise ValueError('相机临时状态仍在变化，已保存诊断，未覆盖工作文件：'+name)
+            raise ValueError('카메라 임시 상태가 계속 바뀌고 있어 진단을 저장했으며, 작업 파일은 덮어쓰지 않았습니다: '+name)
     # Keep reports until last if the connection fails during cleanup.
     for name in sorted(actual,key=lambda value:value.endswith('.result')):
         if camera.temp_read(name,True)!=actual[name]:
@@ -54,7 +54,7 @@ def supersede_temporary(camera, folder, record):
         if camera.temp_read(name,True) is not None:
             raise ValueError('Temporary cleanup incomplete: '+name)
     record('factory_temporary_superseded',files=list(actual),old_operation_replayed=False)
-    print('旧临时工作文件已保存诊断并清理；重新读取相机现况，直接按内建原厂基准生成恢复计划，不重放旧任务。',flush=True)
+    print('이전 임시 작업 파일은 진단을 저장한 뒤 정리했습니다. 카메라의 현재 상태를 다시 읽고 내장 공장 기준으로 바로 복원 계획을 만들며, 이전 작업을 재실행하지 않습니다.',flush=True)
     return len(actual)
 
 
@@ -67,7 +67,7 @@ def prewrite_temporary_conflict(state):
     if state.get('error') not in {
         'Existing temporary state needs recovery: '+name for name in
         ('lut-names-staged.so','a7c2.names.request','a7c2.names.result')
-    } | {'相机执行插件仍存在，不能在执行期间覆盖；本次尚未恢复写入，请结束连接后完整断电再重试'}:return False
+    } | {'카메라 실행 플러그인이 아직 남아 있어 실행 중에는 덮어쓸 수 없습니다. 이번에는 복원 쓰기를 하지 않았습니다. 연결을 끝낸 뒤 전원을 완전히 차단하고 다시 시도하세요'}:return False
     outstanding=set()
     for event in state.get('journal',[]):
         kind=event.get('event','')
@@ -116,7 +116,7 @@ def pending(work_root, preferred=None):
         try:
             state = json.loads(path.read_text(encoding='utf-8'))
         except (OSError, ValueError):
-            print('本地记录无法读取，未用于自动续接（记录保留）：' + str(path), flush=True)
+            print('로컬 기록을 읽을 수 없어 자동 이어 가기에 사용하지 않았습니다(기록은 보존): ' + str(path), flush=True)
             continue
         if not isinstance(state, dict):
             continue
@@ -132,7 +132,7 @@ def pending(work_root, preferred=None):
         identity = state['identity']
         key = (identity.get('model'), identity.get('serial_sha256') or identity.get('usb_serial_sha256'))
         if not all(key):
-            print('恢复记录缺少机身身份，未用于自动续接（记录保留）：' + str(path), flush=True)
+            print('복원 기록에 카메라 본체 식별 정보가 없어 자동 이어 가기에 사용하지 않았습니다(기록은 보존): ' + str(path), flush=True)
             continue
         rows.append((path.stat().st_mtime_ns, str(path), key, path.parent.resolve(), state))
     latest = {}
@@ -156,7 +156,7 @@ def pending(work_root, preferred=None):
     if len(active) > 1:
         # Which body is connected is unknown until USB opens; a fresh restore
         # binds to the connected body and re-plans from its current bytes.
-        print('有多台机身的未完成恢复记录（均保留）；本次按当前连接的相机重新生成恢复计划：' +
+        print('여러 카메라 본체의 미완료 복원 기록이 있습니다(모두 보존). 이번에는 현재 연결된 카메라를 기준으로 복원 계획을 새로 만듭니다: ' +
               '; '.join(str(r[3]) for r in active), flush=True)
         return None
     return (active[0][3], active[0][4]) if active else None
@@ -181,7 +181,7 @@ def known_programs(current, history):
                 if len(image) != build['sizes'][int(chip)] or len(a) != int(size) or len(b) != int(size):
                     raise ValueError('Recovery program layout differs')
                 if image[int(at):int(at) + int(size)] not in (a, b):
-                    raise ValueError('程序窗口包含未确认的字节；保留记录，不能自动重放写入')
+                    raise ValueError('프로그램 영역에 확인되지 않은 바이트가 있습니다. 기록을 보존하며 쓰기를 자동으로 재실행할 수 없습니다')
 
 
 def outcome(raw, result, mode, state, camera, *, allow_completed_name_mount_busy=False):
@@ -256,7 +256,7 @@ def completion_evidence(camera, history, root, state, intent, later):
         boot = raw.decode('ascii', errors='replace').strip() if raw else ''
         if re.fullmatch(r'[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}', boot) and boot != old_boot:
             return 'new-camera-boot'
-    raise ValueError('临时文件和结果均缺失，尚无执行完成或新开机证据；不会重新写入，请保留事务记录')
+    raise ValueError('임시 파일과 결과가 모두 없어 실행 완료나 새 부팅의 증거가 없습니다. 다시 쓰지 않으니 트랜잭션 기록을 보존하세요')
 
 
 def cleanup(camera, history, record, save_raw, *, allow_completed_name_mount_busy=False):
@@ -289,7 +289,7 @@ def cleanup(camera, history, record, save_raw, *, allow_completed_name_mount_bus
         names.append('a7c2.probe.result')
     actual = {n: camera.temp_read(n, True) for n in names}
     if actual['libJit.so'] is not None:
-        raise ValueError('执行插件仍存在，不能确认相机端已结束；不会删除或重试')
+        raise ValueError('실행 플러그인이 아직 남아 있어 카메라 쪽 작업이 끝났는지 확인할 수 없습니다. 삭제하거나 재시도하지 않습니다')
     if actual[stage] is not None and actual[stage] not in blobs:
         raise ValueError('Temporary worker bytes do not match the recorded transaction')
     if request and actual[request] not in (None, bytes.fromhex(intent['contents_hex'])):
@@ -300,7 +300,7 @@ def cleanup(camera, history, record, save_raw, *, allow_completed_name_mount_bus
     if executed:
         if raw is None:
             if any(value is not None for value in actual.values()):
-                raise ValueError('相机端结果报告缺失，暂时不能确认执行结果；保留临时文件，未重新写入')
+                raise ValueError('카메라 쪽 결과 보고서가 없어 아직 실행 결과를 확인할 수 없습니다. 임시 파일을 보존했으며 다시 쓰지 않았습니다')
             proof = completion_evidence(camera, history, root, state, intent, later)
             record('previous_temporary_namespace_empty', previous_workspace=str(root), completion_evidence=proof)
             return

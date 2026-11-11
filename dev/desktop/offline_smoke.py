@@ -155,11 +155,11 @@ def run():
     exiftool=ensure()
     exif_result=subprocess.run([exiftool,'-ver'],capture_output=True,text=True,timeout=30)
     assert exif_result.returncode==0, exif_result.stderr
-    assert '请检查所连接的设备' in connectionguide.TEXT and '正常现象' in connectionguide.TEXT
+    assert '연결된 기기를 확인하십시오' in connectionguide.TEXT and '정상입니다' in connectionguide.TEXT
     audition=dict(phase='temporary_pcm_registered_cold_reload_required_after_test')
     assert not reloadguide.required('sound_audition',audition)
-    assert '保持相机开机' in reloadguide.sound_notice('sound_audition',audition)['text']
-    assert '试听是可选步骤' in reloadguide.sound_notice('sound_install',dict(phase='sound_conversion_required'))['text']
+    assert '카메라 전원을 켜 둔 상태로 유지' in reloadguide.sound_notice('sound_audition',audition)['text']
+    assert '미리 듣기는 선택 단계입니다' in reloadguide.sound_notice('sound_install',dict(phase='sound_conversion_required'))['text']
     from keystone import Ks, KS_ARCH_ARM, KS_MODE_THUMB
     from capstone import Cs, CS_ARCH_ARM, CS_MODE_THUMB
     instruction=bytes(Ks(KS_ARCH_ARM,KS_MODE_THUMB).asm('bx lr')[0])
@@ -203,9 +203,9 @@ def run():
                 options=dict(fl23=False,sound=False,vertical=True,plugin=False,preset_pack=presets.PACK)),dispatch=simulated)
             assert result['phase']=='COMPLETE' and not result['physical_checks_accepted']
             assert calls==['usb_prepare','vertical_enable','direct_install_all']
-            assert '电子快门声：本次未选择' in completion.text(result)
+            assert '전자 셔터음: 이번에 선택 안 함' in completion.text(result)
             assert completion.console_summary(result)['phase']=='COMPLETE'
-            assert '无需每次连接电脑' in completion.text(result)
+            assert '매번 컴퓨터에 연결해 켤 필요가 없습니다' in completion.text(result)
     finally:factoryrecover.pending=previous_pending
     from looktool import nativebuild, checkpointworker, device_layout, resources, nameworker
     from looktool.devicesession import modules

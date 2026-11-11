@@ -51,7 +51,7 @@ class FactoryRecoveryTests(unittest.TestCase):
     def test_missing_result_does_not_clear_worker_or_start_writes(self):
         self.temps.pop('checkpoint.names.result')
         before = dict(self.temps)
-        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '结果报告缺失'):
+        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '결과 보고서가 없어'):
             self.job().continue_factory(self.failed, power_confirmed=True, factory_values={})
         self.assertEqual(before, self.temps)
         self.assertEqual(self.camera.native_calls, [])
@@ -108,7 +108,7 @@ class FactoryRecoveryTests(unittest.TestCase):
     def test_unknown_program_bytes_stop_before_temp_cleanup(self):
         self.camera.files['/usr/lib/appFw.so'] = b'\x7f' + self.camera.files['/usr/lib/appFw.so'][1:]
         before = dict(self.temps)
-        with self.assertRaisesRegex(ValueError, '未确认的字节'):
+        with self.assertRaisesRegex(ValueError, '확인되지 않은 바이트'):
             self.job().continue_factory(self.failed, power_confirmed=True, factory_values={})
         self.assertEqual(self.temps, before)
 
@@ -260,8 +260,8 @@ class FactoryRecoveryTests(unittest.TestCase):
         self.assertEqual(fresh.call_args.kwargs['recovery_source'], str(self.failed.resolve()))
         # Not yet power-cycled (or any other stop) is reported, never re-planned.
         def not_reloaded(root, job):
-            job.verify_direct.side_effect = ValueError('尚未确认新的冷启动。')
-        with self.assertRaisesRegex(ValueError, '冷启动'):
+            job.verify_direct.side_effect = ValueError('새 콜드 부팅이 아직 확인되지 않았습니다.')
+        with self.assertRaisesRegex(ValueError, '콜드 부팅'):
             _, jobs = self.dispatch(finished, not_reloaded)
 
     def test_unfinished_restore_on_another_body_replans_for_the_connected_body(self):
@@ -292,7 +292,7 @@ class FactoryRecoveryTests(unittest.TestCase):
     def test_empty_temporary_namespace_without_any_completion_proof_stops(self):
         self.temps.clear()
         (self.failed / 'evidence/known-names-2.bin').unlink()
-        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '尚无执行完成'):
+        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '실행 완료나 새 부팅의 증거가 없습니다'):
             self.job().continue_factory(self.failed, power_confirmed=True, factory_values={})
         self.assertEqual(self.camera.native_calls, [])
         self.assertEqual(self.camera.saves, [])
@@ -313,7 +313,7 @@ class FactoryRecoveryTests(unittest.TestCase):
         history = factoryrecover.chain(self.failed)
         for boot in (b'', b'not-a-boot-id', b'00000000-0000-0000-0000-000000000001'):
             self.camera.read = lambda *a: boot
-            with self.assertRaisesRegex(ValueError, '尚无执行完成'):
+            with self.assertRaisesRegex(ValueError, '실행 완료나 새 부팅의 증거가 없습니다'):
                 factoryrecover.cleanup(self.camera, history, lambda *a, **kw: None, lambda *a: None)
         self.camera.read = lambda *a: b'00000000-0000-0000-0000-000000000002\n'
         events = []
@@ -324,7 +324,7 @@ class FactoryRecoveryTests(unittest.TestCase):
         from unittest.mock import Mock
         self.camera.mark_unknown = Mock()
         self.temps.pop('checkpoint.names.result')
-        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '结果报告缺失'):
+        with patch.object(direct, 'plan', side_effect=self.target), self.assertRaisesRegex(ValueError, '결과 보고서가 없어'):
             self.job().continue_factory(self.failed, power_confirmed=True, factory_values={})
         self.camera.mark_unknown.assert_called_once()
 
@@ -350,7 +350,7 @@ class FactoryRecoveryTests(unittest.TestCase):
             self.assertIsNone(result['inverse_name_build'])
             self.assertFalse(any(k in ('program', 'names') for k, m in self.camera.native_calls))
             self.camera.boot = 'test-boot-2'
-            with self.assertRaisesRegex(ValueError, '只读挂载尚未确认'):
+            with self.assertRaisesRegex(ValueError, '읽기 전용 마운트가 아직 확인되지 않았습니다'):
                 job.verify_direct(factory_values={})
             self.assertEqual(job.state['phase'], 'AWAITING_RELOAD')
             self.camera.usr_mount_readonly = True

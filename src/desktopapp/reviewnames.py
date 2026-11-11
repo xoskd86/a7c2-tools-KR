@@ -55,7 +55,7 @@ def run(folder, job, *, factory=None):
     root,state,raw=source(folder)
     build=state['forward_name_build']
     with session(factory or CheckpointCamera,state['identity']) as camera:
-        print('核对已完成的名称失败报告、原程序窗口与名称绑定；不写固件或设置。',flush=True)
+        print('완료된 이름 실패 보고서, 원래 프로그램 영역과 이름 바인딩을 확인합니다. 펌웨어나 설정에는 쓰지 않습니다.',flush=True)
         images={name:camera.read(path) for name,path in checkpoint.PROGRAM_PATHS.items()}
         for item in state['program_builds']:
             path=Path(item['path'])
@@ -91,5 +91,5 @@ def run(folder, job, *, factory=None):
     result=dict(failed_workspace=str(root),pre_program_failure_accounted=True,firmware_written=False,
         settings_written=False,name_resources_written=False,temporary_artifacts_cleaned=True)
     write_json(Path(job)/'name-failure-review.private.json',result)
-    print('已确认此前没有提交名称或程序；只清理了对应临时报告／worker。原失败记录保留，下一次使用新的事务。',flush=True)
+    print('이전에 이름이나 프로그램을 기록하지 않았음을 확인했습니다. 해당 임시 보고서／worker만 정리했습니다. 원래 실패 기록은 보존되며, 다음에는 새 트랜잭션을 사용합니다.',flush=True)
     return result

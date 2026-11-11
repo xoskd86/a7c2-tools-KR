@@ -47,7 +47,7 @@ def source(folder):
 
 
 def verify_files(camera,root,state):
-    print('正在读取原程序，核对尚未写入的程序窗口。',flush=True)
+    print('원래 프로그램을 읽어 아직 쓰지 않은 프로그램 영역을 확인하는 중입니다.',flush=True)
     images={n:camera.read(p) for n,p in checkpoint.PROGRAM_PATHS.items()}
     anchor=Path(state.get('program_source_workspace') or root).resolve()
     for build in state['program_builds']:
@@ -75,7 +75,7 @@ def verify_files(camera,root,state):
         original=resources.inverse(raw,spec['inverse'])
         expected,_=resources.rename(original,titles,ids)
         if raw!=expected:raise ValueError('Complete name readback differs: '+spec['file'])
-        if index%16==0 or index==len(build['files']):print('名称完整读回：%d/%d'%(index,len(build['files'])),flush=True)
+        if index%16==0 or index==len(build['files']):print('이름 전체 리드백: %d/%d'%(index,len(build['files'])),flush=True)
     camera.programs_pinned=True
     return images
 

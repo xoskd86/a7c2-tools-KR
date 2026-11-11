@@ -236,7 +236,7 @@ def main(argv=None):
     save(work/'result.json',report)
     print('Created '+str(args.output.resolve()),flush=True)
     if not report['final_optimizer']['optimizer_converged']:
-        print('已生成近似结果；最终优化未完全收敛。验证色样平均预测误差 %.2f / 255，不能代表实机色彩准确度。' %
+        print('근사 결과를 생성했지만 최종 최적화가 완전히 수렴하지 않았습니다. 검증 색 샘플의 평균 예측 오차는 %.2f / 255이며, 실기 색 정확도를 의미하지는 않습니다.' %
               report['virtual_heldout_validation_replica']['RGB_MAE_8bit'],flush=True)
     print('Offline candidate; no camera connection or write was performed.',flush=True)
     return 0

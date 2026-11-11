@@ -82,9 +82,9 @@ def require_idle(state, root=None):
         retire_readonly_failure(root, state)
     if state.get('pending'):
         pending=state['pending']
-        raise ValueError('上一次声音操作（%s）中途停止，结果还没确认，所以没有开始新的操作，也没有连接相机。'
-                         '请点窗口底部“导出诊断包”发给作者核对；不要删除声音工作目录。'
-                         '（Previous operation is unresolved: %s）'%(pending.get('command','?'),pending.get('job','')))
+        raise ValueError('이전 사운드 작업(%s)이 중간에 멈춰 결과가 아직 확인되지 않았으므로, 새 작업을 시작하지 않았고 카메라에도 연결하지 않았습니다. '
+                         '창 아래쪽의 "진단 패키지 내보내기"를 눌러 작성자에게 보내 확인을 받으세요. 사운드 작업 폴더는 삭제하지 마세요.'
+                         ' (Previous operation is unresolved: %s)'%(pending.get('command','?'),pending.get('job','')))
 
 
 def retire_readonly_failure(root, state):
@@ -112,7 +112,7 @@ def retire_readonly_failure(root, state):
     state['native_job'] = None
     state['pending'] = None
     save(root, state)
-    print('旧声音任务已确认停在写入前，检查结果和临时清理均完整；已解除占用，原日志保留。', flush=True)
+    print('이전 사운드 작업이 쓰기 전에 멈췄음을 확인했으며, 검사 결과와 임시 정리가 모두 온전합니다. 점유를 해제했고 원래 로그는 보존했습니다.', flush=True)
     return True
 
 
@@ -129,7 +129,7 @@ def retire_prewrite_install(root,state):
         phase='failed_before_native_execution'))
     state['pending']=None;state['boot_job']=None
     save(root,state)
-    print('上次保存停在电脑端准备阶段，未执行相机写入；已解除占用，保留原日志。',flush=True)
+    print('지난 저장은 컴퓨터 쪽 준비 단계에서 멈춰 카메라 쓰기를 실행하지 않았습니다. 점유를 해제했고 원래 로그는 보존했습니다.',flush=True)
     return True
 
 
@@ -142,11 +142,11 @@ def retire_preallocation_audition(root,state):
     try:
         job=load_job(path)
         if buffer_trial.stopped_before_native(job,path):
-            reason,message='stopped_before_native_worker',('上次试听在调用相机原生程序之前就已停止，没有注册任何声音；'
-                '已解除占用，原记录保留。')
+            reason,message='stopped_before_native_worker',('지난 미리 듣기는 카메라 네이티브 프로그램을 호출하기 전에 멈춰 어떤 사운드도 등록하지 않았습니다. '
+                '점유를 해제했고 원래 기록은 보존했습니다.')
         elif job.get('phase')=='needs_review' and buffer_trial.preallocation_marker_rejection(
                 job,(Path(path)/'report.private.bin').read_bytes()):
-            reason,message='existing_completed_marker','上次试听因旧标记在分配前停止，没有注册新声音；本次按当前状态新建试听。'
+            reason,message='existing_completed_marker','지난 미리 듣기는 이전 표식 때문에 할당 전에 멈춰 새 사운드를 등록하지 않았습니다. 이번에는 현재 상태를 기준으로 새 미리 듣기를 만듭니다.'
         else:
             return False
     except (OSError,ValueError,KeyError,struct.error):
@@ -207,12 +207,12 @@ def on(root, state, battery, zig=None, *, power_confirmed=False,defer_reload=Fal
         options = {'expected': state['native_identity']} if state.get('native_identity') else {}
         prepared=trial.preflight(job, Path(state['backup_root']) / job.name, zig, **options)
         if prepared and prepared.get('adopted_existing_enabled'):
-            print('电子快门声已启用；已核对并接入声音工具，没有重复刷写。',flush=True)
+            print('전자 셔터음이 이미 활성화되어 있습니다. 확인 후 사운드 도구에 연결했으며, 다시 플래시하지 않았습니다.',flush=True)
             return prepared
         return trial.change(job, zig=zig)
     result = operate(root, state, 'on', job, run)
-    print('声音支援已准备，继续保存当前片段；全部写入结束后统一提示断电。' if defer_reload else
-          '本次只接入已启用的声音开关，保持开机继续。' if result.get('adopted_existing_enabled') else RELOAD)
+    print('사운드 지원을 준비했습니다. 현재 구간 저장을 계속하며, 모든 쓰기가 끝나면 한 번에 전원 차단을 안내합니다.' if defer_reload else
+          '이번에는 이미 활성화된 사운드 스위치에만 연결합니다. 전원을 켠 채로 계속하세요.' if result.get('adopted_existing_enabled') else RELOAD)
     return result
 
 
@@ -293,7 +293,7 @@ def volume_audio(root, *, decibels=0, reset=False):
     import media
     root=Path(root).resolve();conversion=selected_conversion(root,None)
     if not conversion:
-        raise ValueError('请先转换所选片段，再调节音量。')
+        raise ValueError('먼저 선택 구간을 변환한 뒤 음량을 조절하세요.')
     folder=new_path(root,'volume')
     report=media.adjust_volume(conversion,folder,decibels=decibels,reset=reset)
     return select_conversion(root,folder,report,'volume_adjusted_offline')
@@ -305,7 +305,7 @@ def audition(root, state, zig=None):
     require_idle(state, root)
     conversion=selected_conversion(root,state)
     if not conversion:
-        raise ValueError('请先点「转换所选片段」，转换成功后再试听。')
+        raise ValueError('먼저 「선택 구간 변환」을 누르고, 변환에 성공한 뒤 미리 들어 보세요.')
     # The current request reconciles the actual marker once, before adoption.
     previous=None
     payload = (Path(conversion) / 'custom-native.private.bin').read_bytes()
@@ -341,7 +341,7 @@ def confirm_audio(root, state, result):
         state.setdefault('history',[]).append(dict(command='confirm-audio',result=result,owner_statement_only=True))
         save(root,state)
         value=dict(phase='owner_audio_statement_recorded',camera_io=False,owner_audio_correct=result=='correct')
-    print('试听结果已记录；可直接保存当前转换片段，无需先断电恢复。')
+    print('미리 듣기 결과를 기록했습니다. 전원을 차단해 복원할 필요 없이 현재 변환 구간을 바로 저장할 수 있습니다.')
     return value
 
 
@@ -379,7 +379,7 @@ def install(root, state, battery, zig=None, *, power_confirmed=False):
     if previous_native and previous_native.get('identity'):
         state['native_identity']=previous_native['identity']
     if not previous_native or previous_native.get('phase')=='restored':
-        print('自动准备电子快门声支援；已有开关直接接入，不要求先手动开启或关联旧任务。',flush=True)
+        print('전자 셔터음 지원을 자동으로 준비합니다. 이미 스위치가 있으면 바로 연결하며, 먼저 수동으로 켜거나 이전 작업과 연결할 필요가 없습니다.',flush=True)
         on(root,state,battery,zig,power_confirmed=power_confirmed,defer_reload=True)
     original, _ = native_job(state)
     # Current selected bytes are sufficient. Do not use an old audition record
@@ -439,15 +439,15 @@ def restore_sound(root, state, zig=None):
     require_idle(state,root)
     job = restorable_install(root, state)
     if job is None:
-        raise ValueError('这个声音工作目录里没有可用的永久声音安装记录，本次没有连接相机。'
-                         '要还原相机的原厂快门音效，请点“恢复原厂功能”：它按相机当前字节还原全部声音程序，不依赖旧记录。')
+        raise ValueError('이 사운드 작업 폴더에는 사용할 수 있는 영구 사운드 설치 기록이 없어 이번에는 카메라에 연결하지 않았습니다.'
+                         '카메라의 순정 셔터 효과음으로 되돌리려면 "공장 기능 복원"을 누르세요. 카메라의 현재 바이트를 기준으로 모든 사운드 프로그램을 되돌리며, 이전 기록에 의존하지 않습니다.')
     if str(job) != state.get('boot_job'):
         # The latest record stopped part-way; it is archived, never repeated.
         if state.get('boot_job'):
             state.setdefault('history', []).append(dict(command='previous_installation', job=state['boot_job'],
                 phase='superseded_by_restorable_installation'))
         state['boot_job'] = str(job)
-        print('最近的声音安装记录不可直接恢复；改用同一机身最近一次完成的安装记录，从相机当前字节规划恢复。', flush=True)
+        print('최근 사운드 설치 기록으로는 바로 복원할 수 없습니다. 같은 카메라 본체에서 가장 최근에 완료된 설치 기록을 대신 사용해, 카메라의 현재 바이트로부터 복원을 계획합니다.', flush=True)
     result = operate(root, state, 'restore-sound', job, lambda: boot_trial.restore(job, zig))
     print(RELOAD)
     return result
@@ -628,8 +628,8 @@ def main(argv=None, *, report=None, failure=None):
         print(json.dumps(public if args.command not in ('status', 'doctor') else result, indent=2))
         return 0
     except (ValueError, OSError, ImportError, RuntimeError, KeyError) as exc:
-        detail=('\n电脑端音频处理失败，本次没有相机读写；请修正输入后重试。' if args.command=='volume' else
-                '\n电脑端转换失败，本次没有相机读写；请修正输入后重新转换。' if args.command=='import' else
+        detail=('\n컴퓨터 쪽 오디오 처리에 실패해 이번에는 카메라 읽기/쓰기를 하지 않았습니다. 입력을 수정한 뒤 다시 시도하세요.' if args.command=='volume' else
+                '\n컴퓨터 쪽 변환에 실패해 이번에는 카메라 읽기/쓰기를 하지 않았습니다. 입력을 수정한 뒤 다시 변환하세요.' if args.command=='import' else
                 '\nKeep the workspace and backup; do not repeat unknown writes.')
         print('Stopped: ' + str(exc) + detail, file=sys.stderr)
         if failure is not None:

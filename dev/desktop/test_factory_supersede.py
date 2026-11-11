@@ -56,7 +56,7 @@ def test_active_loader_is_not_overwritten_or_archived(tmp_path):
     camera=Camera(values())
     camera.files.update({'/tmp/jiritsu/lut-names-staged.so':b'old','/tmp/jiritsu/libJit.so':b'active'})
     before=copy.deepcopy(camera.files)
-    with pytest.raises(ValueError,match='执行插件仍存在'):
+    with pytest.raises(ValueError,match='실행 플러그인이 아직 남아 있어'):
         factoryrecover.supersede_temporary(camera,tmp_path/'archive',lambda *a,**k:None)
     assert camera.files==before and not (tmp_path/'archive').exists()
 
@@ -74,7 +74,7 @@ def test_changing_temporary_state_is_not_deleted(tmp_path):
     camera=Camera(values());camera.files['/tmp/jiritsu/lut-names-staged.so']=b'old'
     def record(event,**kwargs):
         if event=='factory_temporary_archived':camera.files['/tmp/jiritsu/a7c2.names.result']=b'new-report'
-    with pytest.raises(ValueError,match='仍在变化'):
+    with pytest.raises(ValueError,match='계속 바뀌고 있'):
         factoryrecover.supersede_temporary(camera,tmp_path/'archive',record)
     assert camera.temp_read('lut-names-staged.so')==b'old'
     assert camera.temp_read('a7c2.names.result')==b'new-report'

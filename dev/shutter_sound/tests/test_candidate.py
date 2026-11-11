@@ -149,7 +149,7 @@ class CandidateTests(unittest.TestCase):
         def check(root,state,camera):
             calls=list(state['calls'])
             path=root.parent/'audition-adopt'
-            with self.assertRaisesRegex(ValueError,'尚未开启'):
+            with self.assertRaisesRegex(ValueError,'아직 켜져 있지 않습니다'):
                 trial.preflight(path,root.parent/'adopt-backup',camera_factory=camera,
                                 expected=camera().identity,adopt_only=True)
             self.assertEqual(state['calls'],calls)
@@ -165,7 +165,7 @@ class CandidateTests(unittest.TestCase):
             self.assertNotIn(('program',1),state['calls'])
             self.assertEqual(candidate.sound_state(state['files']['/cp/cpapp-b.bin']),'legacy')
             adoption=root.parent/'no-silent-rom-write'
-            with self.assertRaisesRegex(ValueError,'旧版快门声音'):
+            with self.assertRaisesRegex(ValueError,'이전 버전의 셔터음'):
                 trial.preflight(adoption,root.parent/'second-backup',camera_factory=camera,adopt_only=True)
             self.assertNotIn(('program',1),state['calls'])
             trial.change(root,camera_factory=camera)

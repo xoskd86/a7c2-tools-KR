@@ -10,25 +10,25 @@ def archive_error(state):
 
 
 def text(state):
-    if state.get('phase')!='COMPLETE':raise ValueError('上次安装尚未结束，请使用“继续安装”。')
+    if state.get('phase')!='COMPLETE':raise ValueError('지난 설치가 아직 끝나지 않았습니다. "설치 계속"을 사용하세요.')
     options=state.get('options',{})
-    lines=['本次所选操作已完成，程序与设置核对通过。','请在机身检查预览、拍摄和回放。','',
-        'FL2／FL3：'+('已启用' if options.get('fl23',True) else '本次未改动')]
+    lines=['이번에 선택한 작업이 완료되었으며 프로그램과 설정 확인을 통과했습니다.','카메라에서 미리보기, 촬영 및 재생을 확인하세요.','',
+        'FL2／FL3: '+('활성화됨' if options.get('fl23',True) else '이번에 변경 안 함')]
     looks=options.get('looks',[])
     if looks:
-        lines.append('自定义外观：已写入')
-        lines.extend('  自订 %s：%s'%(row['slot'],row.get('name') or '沿用文件名称') for row in looks)
-    else:lines.append('自定义外观：本次未改动')
-    lines.append('电子快门声：'+('已启用支持，请检查机身音频信号设置' if options.get('sound',True) else '本次未选择'))
-    if options.get('plugin'):lines.append('Lightroom 插件：已安装，请在插件管理器中启用')
+        lines.append('커스텀 룩: 기록됨')
+        lines.extend('  커스텀 %s: %s'%(row['slot'],row.get('name') or '파일 내 이름 사용') for row in looks)
+    else:lines.append('커스텀 룩: 이번에 변경 안 함')
+    lines.append('전자 셔터음: '+('지원을 활성화했습니다. 카메라의 오디오 신호음 설정을 확인하세요' if options.get('sound',True) else '이번에 선택 안 함'))
+    if options.get('plugin'):lines.append('Lightroom 플러그인: 설치됨. 플러그인 관리자에서 활성화하세요')
     if options.get('vertical',True):
         if state.get('vertical_result',{}).get('persistent') and state['vertical_result'].get('loaded_verified'):
-            lines.append('竖屏拍摄信息：已保存开启，并已核对重开后的运行状态；无需每次连接电脑开启。')
+            lines.append('세로 촬영 정보: 켬으로 저장했고 재시작 후 동작 상태도 확인했습니다. 매번 컴퓨터에 연결해 켤 필요가 없습니다.')
         else:
-            lines.extend(['竖屏拍摄信息：旧版仅开启本次运行。',
-                '旧任务未保存为开机默认；可在新版“竖屏显示”页保存开启。'])
-    else:lines.append('竖屏拍摄信息：本次未改动')
-    lines.extend(['','本次安装已结束，无需为了查看结果再次刷写。'])
+            lines.extend(['세로 촬영 정보: 이전 버전은 이번 실행에서만 켜집니다.',
+                '이전 작업은 부팅 기본값으로 저장되지 않았습니다. 새 버전의 "세로 표시" 페이지에서 켬으로 저장할 수 있습니다.'])
+    else:lines.append('세로 촬영 정보: 이번에 변경 안 함')
+    lines.extend(['','이번 설치는 끝났습니다. 결과를 보려고 다시 플래시할 필요는 없습니다.'])
     return '\n'.join(lines)
 
 

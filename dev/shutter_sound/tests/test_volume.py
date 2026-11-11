@@ -81,4 +81,4 @@ def test_cli_and_desktop_volume_need_no_backup_or_camera(converted):
 
 
 def test_volume_before_conversion_gives_actionable_error(tmp_path):
-    with pytest.raises(ValueError,match='先转换'):cli.volume_audio(tmp_path,decibels=3)
+    with pytest.raises(ValueError,match='먼저 선택 구간을 변환'):cli.volume_audio(tmp_path,decibels=3)

@@ -43,5 +43,5 @@ def test_published_v2_native_fields_upgrade_and_reapply_without_touching_other_b
         assert target['appFw.so']==b'AP'
         assert compat.plan(b'AP',target['cpapp-b.bin'],transitions=False)[1]
         wrong=bytearray(before);wrong[offset+3]^=0x41
-        with pytest.raises(ValueError,match='衝突'):
+        with pytest.raises(ValueError,match='충돌'):
             compat.plan(b'AP',bytes(wrong),transitions=False)

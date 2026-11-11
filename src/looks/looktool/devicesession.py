@@ -45,7 +45,7 @@ class Camera:
             if sys.platform=='darwin':
                 # The camera may be showing its USB mode menu; MDHan waits 60 s.
                 from macos_host import MSC_PROMPT,NORMAL_RETURN_SECONDS
-                print('等待相机普通 USB 连接（最多 %d 秒）。'%NORMAL_RETURN_SECONDS+MSC_PROMPT,flush=True)
+                print('카메라의 일반 USB 연결을 기다리는 중(최대 %d초).'%NORMAL_RETURN_SECONDS+MSC_PROMPT,flush=True)
                 wait=NORMAL_RETURN_SECONDS
             deadline=time.monotonic()+wait
             while detected is None and time.monotonic()<deadline:
@@ -70,14 +70,14 @@ class Camera:
                 self.link=open_service(transport);self.identity_pending=True
         else:
             if self.allow_service_resume and self.expected and self.expected.get('model')==self.core.MODEL:
-                print('普通 USB 身份未出现；只读取已有服务会话的机身序列，核对后续接，不重复认证。',flush=True)
+                print('일반 USB ID가 나타나지 않았습니다. 기존 서비스 세션의 본체 시리얼만 읽어 확인한 뒤 이어 가며, 다시 인증하지 않습니다.',flush=True)
                 self.link=transport.RecoverySession(self.expected);self.link.__enter__()
                 self.identity=dict(self.link.identity,identification_method='recorded-body-existing-service')
                 self.service_only=False
                 return self
-            raise ValueError('相机没有以普通“海量存储”身份连接（可能仍停在上次的服务模式 054C:0336）。'
-                             '请拔掉 USB、关机并取出电池约 1 分钟，再开机选择海量存储、接回 USB 后重试；本次没有写入相机。'
-                             '（Normal Mass Storage USB serial is required for body binding）')
+            raise ValueError('카메라가 일반 "대용량 저장장치" ID로 연결되지 않았습니다(지난 서비스 모드 054C:0336에 머물러 있을 수 있음). '
+                             'USB를 뽑고 전원을 끈 뒤 배터리를 약 1분간 분리했다가, 다시 켜서 대용량 저장장치를 선택하고 USB를 연결한 뒤 다시 시도하세요. 이번에는 카메라에 쓰지 않았습니다.'
+                             ' (Normal Mass Storage USB serial is required for body binding)')
         try:
             self.identity=dict(self.link.identity,usb_serial_sha256=usb_serial)
             if self.identity_pending and self.expected and self.expected.get('model')==self.core.MODEL:
@@ -102,7 +102,7 @@ class Camera:
         try:return self.link.read('/tmp/jiritsu/../../'+path.lstrip('/'),missing)
         except BaseException:
             # Name the file; a channel error is otherwise reported generically.
-            print('读取相机文件时 USB 通信出错：'+path,flush=True)
+            print('카메라 파일을 읽는 중 USB 통신 오류: '+path,flush=True)
             raise
     def temp_read(self,name,missing=False):
         if name not in TEMP_NAMES:raise ValueError('Unowned temporary name')
@@ -153,7 +153,7 @@ def clear_stale_probe(camera,record):
     if camera.temp_read(probe,True)!=raw:raise ValueError('Temporary state changed during cleanup: '+probe)
     camera.temp_remove(probe)
     if camera.temp_read(probe,True) is not None:raise ValueError('Temporary cleanup incomplete: '+probe)
-    print('已清理上次只读检测留下的报告（不影响相机内容），继续本次操作。',flush=True)
+    print('지난 읽기 전용 검사가 남긴 보고서를 정리했습니다(카메라 내용에는 영향 없음). 이번 작업을 계속합니다.',flush=True)
 
 def invoke(camera,blob,*,stage,request,result,contents,mode,decode,record,save_raw,extras=()):
     """One invocation, never retries or cleans an unknown operation."""

@@ -109,3 +109,11 @@ Keep the documentation set small: `README.md`/`README.zh-CN.md` (users),
 `docs/{en,zh-CN}/` `lut-formats.md`, `changelog.md`, `notices.md` and
 `development.md`, and this file. Keep English and Simplified Chinese in sync. Don't add
 per-feature guides or research notes; record decisions in the changelog.
+
+## Korean fork
+
+This fork (`xoskd86/a7c2-tools-KR`) shows the desktop app, its dialogs and the
+worker/log messages in Korean, and adds `README.ko.md`. Only user-visible strings
+differ from upstream; camera bytes, checks and workflows are unchanged. Keep new
+user-visible strings in Korean, keep button names quoted in messages identical to
+the button labels, and update the matching test assertions with them.

@@ -29,13 +29,13 @@ def verify(args,job):
             size=0
             if custom:
                 current=boot_trial.current_sound(camera.read(boot_trial.PATHS[1],True))
-                if current is None:raise ValueError('当前自定义声音配置不存在，请重新保存或恢复原厂音效。')
+                if current is None:raise ValueError('현재 커스텀 사운드 구성이 없습니다. 다시 저장하거나 순정 효과음으로 복원하세요.')
                 path,size=current
-                if len(camera.read(path))!=size:raise ValueError('当前声音文件长度与配置不同。')
+                if len(camera.read(path))!=size:raise ValueError('현재 사운드 파일 길이가 구성과 다릅니다.')
                 descriptor=loaded['entries'][2]
                 if (descriptor['kind']!=3 or descriptor['length']!=size or
                         descriptor['filename_prefix']!='/usr' or not descriptor['native_handle']&0x8000):
-                    raise ValueError('当前声音尚未按磁盘配置加载，请按写入后的提示断电重开。')
+                    raise ValueError('현재 사운드가 아직 디스크 구성대로 로드되지 않았습니다. 쓰기 후 안내에 따라 전원을 완전히 끄고 다시 켜세요.')
     return dict(phase='owner_confirmed_working' if args.get('accepted') else 'loaded_owner_confirmation_pending',
         workspace=str(root),camera_io=True,camera_firmware_written=False,camera_settings_written=False,
         sound_support_enabled_on_disk=enabled,custom_sound_on_disk=custom,audio_bytes=size,

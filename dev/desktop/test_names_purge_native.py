@@ -204,7 +204,7 @@ class PurgeNativeTests(unittest.TestCase):
         raw, v = fs.run(self.build['path'])
         self.assertEqual(v[5], -5)
         self.assertTrue(fs.ro)
-        with self.assertRaisesRegex(ValueError, '清理未完成'):
+        with self.assertRaisesRegex(ValueError, '정리가 완료되지 않았'):
             checkpointworker.purge_report(raw, self.build)
 
     def test_restore_build_rejects_cleanup_mode(self):

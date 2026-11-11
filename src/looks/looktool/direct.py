@@ -220,18 +220,18 @@ class DirectJob(Rollback):
         self.state.update(values, phase=phase)
         write_json(self.state_path, self.state)
         restoring = self.state.get('mode') == 'factory_reset'
-        labels = {'READING': '读取当前状态', 'PLANNED': '恢复计划已生成' if restoring else '所选操作的写入计划已生成',
-                  'RESTORING_NAMES': '恢复并核对名称资源' if restoring else '核对名称资源',
-                  'RESTORING_SETTINGS': '恢复原厂外观设置' if restoring else '应用并核对所选设置',
-                  'PREPARING_RELOAD': '准备重新加载', 'PREFLIGHT_VERIFIED': '写入前检查通过，接下来应用更改',
-                  'WRITING': '正在应用所选操作', 'AWAITING_RELOAD': '读回完成，等待断电重开',
-                  'LOADED': '加载状态符合目标', 'COMPLETE': '完成', 'NEEDS_REVIEW': '已停止，请保留日志核对结果'}
-        labels.update(AWAITING_RESOURCE_RELOAD='名称已写好；请按提示断电重开，再继续程序安装',
-                      RESOURCE_RELOAD_VERIFIED='名称及只读挂载已确认，可以继续程序安装')
+        labels = {'READING': '현재 상태 읽기', 'PLANNED': '복원 계획 생성됨' if restoring else '선택한 작업의 쓰기 계획 생성됨',
+                  'RESTORING_NAMES': '이름 리소스 복원 및 확인' if restoring else '이름 리소스 확인',
+                  'RESTORING_SETTINGS': '공장 룩 설정 복원' if restoring else '선택한 설정 적용 및 확인',
+                  'PREPARING_RELOAD': '재로드 준비', 'PREFLIGHT_VERIFIED': '쓰기 전 검사 통과, 이제 변경 사항을 적용합니다',
+                  'WRITING': '선택한 작업을 적용하는 중', 'AWAITING_RELOAD': '리드백 완료, 전원 차단 후 재시작 대기',
+                  'LOADED': '로드 상태가 목표와 일치', 'COMPLETE': '완료', 'NEEDS_REVIEW': '중지되었습니다. 로그를 보존하고 결과를 확인하세요'}
+        labels.update(AWAITING_RESOURCE_RELOAD='이름이 기록되었습니다. 안내에 따라 전원을 완전히 끄고 다시 켠 뒤 프로그램 설치를 계속하세요',
+                      RESOURCE_RELOAD_VERIFIED='이름과 읽기 전용 마운트를 확인했습니다. 프로그램 설치를 계속할 수 있습니다')
         if phase=='AWAITING_RELOAD' and self.state.get('mode') in ('fl23_enable','fl23_disable'):
-            labels[phase] = 'FL23 操作完成：已写入并完整读回；重开后生效，无需再点核对。'
+            labels[phase] = 'FL23 작업 완료: 쓰기와 전체 리드백을 마쳤습니다. 재시작 후 적용되며, 확인 버튼을 누를 필요는 없습니다.'
         elif phase=='AWAITING_RELOAD' and restoring:
-            labels[phase]='恢复尚未完成：写入与读回已结束，等待重启后核对'
+            labels[phase]='복원이 아직 끝나지 않았습니다: 쓰기와 리드백은 끝났으며, 재시작 후 확인을 기다리는 중입니다'
         print(labels.get(phase, phase), flush=True)
 
     def settings(self, camera, before, wanted):
@@ -291,7 +291,7 @@ class DirectJob(Rollback):
         result = self.native(camera, 'purge', 5, build)
         self.record('stale_name_backups_removed', matched=result['matched'], removed=result['removed'])
         if result['removed']:
-            print('已清理旧任务遗留的名称备份 %d 个，释放相机 /usr 空间。' % result['removed'], flush=True)
+            print('이전 작업이 남긴 이름 백업 %d개를 정리해 카메라 /usr 공간을 확보했습니다.' % result['removed'], flush=True)
         return result
 
     def resume_install_settings(self,failed_workspace,*,power_confirmed):
@@ -340,7 +340,7 @@ class DirectJob(Rollback):
                 if runtime['image_mode'].strip()=='2':
                     self.native(camera,'wbi',0);self.native(camera,'wbi',1)
             self.save('AWAITING_RELOAD',raw_profile_effective_since=datetime.now().isoformat(timespec='microseconds'))
-            print('已核对程序和名称均符合原安装计划，只续做设置与重新加载准备；没有重复刷写程序。',flush=True)
+            print('프로그램과 이름이 모두 원래 설치 계획과 일치함을 확인했습니다. 설정과 재로드 준비만 이어서 하며, 프로그램은 다시 플래시하지 않았습니다.',flush=True)
             return self.state
         except BaseException as exc:
             self.save('NEEDS_REVIEW',error=str(exc));raise
@@ -359,7 +359,7 @@ class DirectJob(Rollback):
         keys=[key for key in prepared[0] if key not in (*checkpoint.AP_KEYS,SETTING)]
         if not keys:return prepared
         result=self.prepare_ap_settings(camera,prepared,keys,'look_slots_st')
-        print('所选槽位已保存为 ST。',flush=True)
+        print('선택한 슬롯을 ST로 저장했습니다.',flush=True)
         return result
 
     def prepare_ap_settings(self, camera, prepared, selected, event):
@@ -430,7 +430,7 @@ class DirectJob(Rollback):
                 if names:
                     self.native(camera, 'names', 4, names)
                 self.save('PREFLIGHT_VERIFIED', program_builds=[], inverse_name_build=names, forward_name_build=None)
-                print('只继续名称、设置与重新加载准备，不重复写入程序。', flush=True)
+                print('이름, 설정, 재로드 준비만 계속하며, 프로그램은 다시 쓰지 않습니다.', flush=True)
                 self.save('WRITING')
                 prepared=self.prepare_factory_settings(camera,prepared)
                 if names:
@@ -441,7 +441,7 @@ class DirectJob(Rollback):
                     self.native(camera, 'wbi', 0)
                     self.native(camera, 'wbi', 1)
             self.save('AWAITING_RELOAD')
-            print('续接写入和读回已结束，恢复尚未完成：请拔 USB 和其他外部供电，等存取灯停止闪烁，再正常关机并等屏幕和灯完全熄灭；取下电池至少一分钟，再装回开机、接回 USB，点击“重启后核对并完成恢复”。', flush=True)
+            print('이어 쓰기와 리드백은 끝났지만 복원은 아직 끝나지 않았습니다: USB와 다른 외부 전원을 분리하고, 액세스 램프가 깜박임을 멈출 때까지 기다린 뒤 정상적으로 전원을 끄고 화면과 램프가 완전히 꺼질 때까지 기다리세요. 배터리를 최소 1분간 분리했다가 다시 넣고 전원을 켠 뒤 USB를 다시 연결하고 "재시작 후 확인하고 복원 완료"를 누르세요.', flush=True)
             return self.state
         except BaseException as exc:
             self.save('NEEDS_REVIEW', error=str(exc))
@@ -535,8 +535,8 @@ class DirectJob(Rollback):
                         allowed.add(target['appFw.so'][span['offset']:span['offset'] + span['length']].hex())
                     if span['memory'] not in allowed or span['disk'] != expected:
                         if mode == 'factory_reset':
-                            raise ValueError('相机仍在运行上次写入前加载的程序，本次没有写入。请先拔 USB、关机，取下电池至少一分钟，'
-                                             '再开机接回 USB，点击“重启后核对并完成恢复”或再次点击恢复。')
+                            raise ValueError('카메라가 아직 지난 쓰기 전에 로드된 프로그램을 실행 중이라 이번에는 쓰지 않았습니다. 먼저 USB를 뽑고 전원을 끈 뒤 배터리를 최소 1분간 분리했다가, '
+                                             '다시 켜서 USB를 연결하고 "재시작 후 확인하고 복원 완료"를 누르거나 다시 복원을 누르세요.')
                         raise ValueError('Finish the previous cold reload before changing another feature')
                 for build in programs:
                     self.native(camera, 'program', 0, build)
@@ -555,8 +555,8 @@ class DirectJob(Rollback):
                 # Finish the resource transaction before any program edits;
                 # ENOSPC here must leave the previous program executable.
                 if forward and not forward.get('unchanged'):
-                    print('正在逐文件更新名称（共 %d 项）；名称完成后才写入程序。' % forward['count'] if forward.get('stream_install') else
-                          '先写入名称资源，成功后才写入程序。', flush=True)
+                    print('이름을 파일별로 갱신하는 중(총 %d개). 이름이 끝난 뒤에 프로그램을 씁니다.' % forward['count'] if forward.get('stream_install') else
+                          '먼저 이름 리소스를 쓰고, 성공한 뒤에 프로그램을 씁니다.', flush=True)
                     name_result=self.forward_names(camera, forward, 1)
                     self.state['names_cleanup_pending'] = not forward.get('stream_install',False)
                     self.save('WRITING')
@@ -573,7 +573,7 @@ class DirectJob(Rollback):
                     if mode in ('look_import','install_all','slot_default'):
                         prepared=self.prepare_look_settings(camera,prepared)
                     for index, build in enumerate(programs):
-                        print('正在写入程序窗口批次 %d/%d' % (index + 1, len(programs)), flush=True)
+                        print('프로그램 영역 배치 %d/%d 쓰는 중' % (index + 1, len(programs)), flush=True)
                         self.native(camera, 'program', 1, build)
                     for program, path in checkpoint.PROGRAM_PATHS.items():
                         if camera.read(path) != target[program]:
@@ -584,7 +584,7 @@ class DirectJob(Rollback):
                         name_result = self.native(camera, 'names', 2, inverse_names)
                         if name_result and name_result.get('readonly_deferred_busy'):
                             self.state['readonly_deferred_busy'] = True
-                            print('名称内容已完成；只读挂载忙碌。完成设置与重新加载准备后，需要断电重开核对挂载状态。', flush=True)
+                            print('이름 내용은 완료되었지만 읽기 전용 마운트가 사용 중입니다. 설정과 재로드 준비를 마친 뒤 전원을 완전히 끄고 다시 켜서 마운트 상태를 확인해야 합니다.', flush=True)
                     self.readback(camera, target)
                     self.save('RESTORING_SETTINGS')
                     self.restore_settings(camera, prepared)
@@ -598,12 +598,12 @@ class DirectJob(Rollback):
                         self.state['readonly_after_reload_verified']=True
             if resource_pause:
                 self.save('AWAITING_RESOURCE_RELOAD')
-                print('所有读写已结束。68 个名称已完整核对，程序和配方尚未写入。旧资源仍被占用，需要断电重开释放后，再点同一按钮继续；不重复写名称。',flush=True)
+                print('모든 읽기/쓰기가 끝났습니다. 이름 68개를 전체 확인했으며, 프로그램과 레시피는 아직 쓰지 않았습니다. 이전 리소스가 아직 사용 중이라 전원을 완전히 끄고 다시 켜서 해제한 뒤 같은 버튼을 눌러 계속하세요. 이름은 다시 쓰지 않습니다.',flush=True)
                 return self.state
             self.save('AWAITING_RELOAD' if changed else 'LOADED', raw_profile_effective_since=datetime.now().isoformat(timespec='microseconds'))
             if changed and mode in ('fl23_enable','fl23_disable'):
-                print('安装／关闭任务已结束，没有后续待写入步骤。以下断电仅用于让相机加载已写入的程序，电脑端核对可选。',flush=True)
-            print('所有读写已结束。拔 USB 和其他外部供电，等存取灯停止闪烁，再正常关机并等屏幕和灯完全熄灭；取下电池至少一分钟，再装回开机、检查功能并核对。' if changed else '磁盘与设置已符合目标，本次没有重复写入；实际预览、照片和声音仍需在机身检查。', flush=True)
+                print('설치／끄기 작업이 끝났으며, 이후 쓸 단계가 없습니다. 아래의 전원 차단은 카메라가 기록된 프로그램을 로드하게 하기 위한 것이며, 컴퓨터에서의 확인은 선택입니다.',flush=True)
+            print('모든 읽기/쓰기가 끝났습니다. USB와 다른 외부 전원을 분리하고, 액세스 램프가 깜박임을 멈출 때까지 기다린 뒤 정상적으로 전원을 끄고 화면과 램프가 완전히 꺼질 때까지 기다리세요. 배터리를 최소 1분간 분리했다가 다시 넣고 전원을 켠 뒤 기능을 점검하고 확인하세요.' if changed else '디스크와 설정이 이미 목표와 일치하여 이번에는 다시 쓰지 않았습니다. 실제 미리보기, 사진, 소리는 카메라에서 직접 확인해야 합니다.', flush=True)
             return self.state
         except BaseException as exc:
             self.save('NEEDS_REVIEW', error=str(exc))
@@ -639,7 +639,7 @@ class DirectJob(Rollback):
                 elif runtime['image_mode'].strip() not in ('0','2'):raise ValueError('Unknown retained image state')
             self.save('RESOURCE_RELOAD_VERIFIED' if ready else namespause.WAIT,
                 resource_reload_not_needed=ready,resource_reload_verified=ready)
-            print('所有读写已结束。名称已核对，程序未写入。'+('只读挂载已恢复，无需额外重开。' if ready else '请按弹窗断电重开后接回，继续剩余程序安装。'),flush=True)
+            print('모든 읽기/쓰기가 끝났습니다. 이름은 확인했고 프로그램은 쓰지 않았습니다.'+('읽기 전용 마운트가 복구되어 추가 재시작이 필요 없습니다.' if ready else '팝업에 따라 전원을 완전히 끄고 다시 켠 뒤 다시 연결해 남은 프로그램 설치를 계속하세요.'),flush=True)
             return self.state
         except BaseException as exc:
             self.save('NEEDS_REVIEW',error=str(exc));raise
@@ -654,7 +654,7 @@ class DirectJob(Rollback):
             ready=(runtime.get('usr_mount_readonly') is True and
                 (self.state.get('resource_reload_not_needed') or runtime['boot_id'].strip()!=self.state.get('source_boot_id')))
         if not ready:
-            print('尚未确认新的冷启动与只读挂载；没有重复写入。请按弹窗完成断电重开、接回。',flush=True)
+            print('새 콜드 부팅과 읽기 전용 마운트가 아직 확인되지 않았습니다. 다시 쓰지 않았습니다. 팝업에 따라 전원을 완전히 끄고 다시 켠 뒤 다시 연결하세요.',flush=True)
             return self.state
         self.save('RESOURCE_RELOAD_VERIFIED',resource_reload_verified=True,resource_boot_id=runtime['boot_id'].strip())
         return self.state
@@ -666,7 +666,7 @@ class DirectJob(Rollback):
         history = factoryrecover.chain(failed_workspace)
         prior_root, prior = history[-1]
         if prior['phase'] in factoryrecover.FINISHED:
-            raise ValueError('恢复写入已结束，请核对重新加载状态，不重复写入')
+            raise ValueError('복원 쓰기는 끝났습니다. 재로드 상태를 확인하세요. 다시 쓰지 않습니다')
         if self.root.exists() and any(self.root.iterdir()):
             raise ValueError('Use a new continuation directory; keep earlier evidence')
         self.root.mkdir(parents=True, exist_ok=True)
@@ -694,12 +694,12 @@ class DirectJob(Rollback):
                     allow_completed_name_mount_busy=content_complete) or {}
                 if recovered.get('readonly_deferred_busy'):
                     self.state['readonly_deferred_busy'] = True
-                    print('已完整读回确认程序与名称均符合原厂目标；只继续设置和重新加载准备，只读挂载将在新开机后核对。', flush=True)
+                    print('전체 리드백으로 프로그램과 이름이 모두 공장 목표와 일치함을 확인했습니다. 설정과 재로드 준비만 계속하며, 읽기 전용 마운트는 새로 부팅한 뒤 확인합니다.', flush=True)
                 factoryrecover.supersede_temporary(camera,self.root/'evidence/superseded-temporary',self.record)
                 runtime = self.native(camera, 'runtime', 0)
                 self.prepare_vertical(camera)
                 if runtime['image_mode'].strip() not in ('0', '2') or not runtime.get('boot_id', '').strip():
-                    raise ValueError('无法确认当前加载状态；尚未开始续接写入')
+                    raise ValueError('현재 로드 상태를 확인할 수 없습니다. 이어 쓰기는 아직 시작하지 않았습니다')
                 earlier = [r['result']['spans'] for _, state in history for r in state.get('journal', [])
                     if r.get('event') == 'native_result_verified' and 'spans' in r.get('result', {})]
                 for span in runtime['spans']:
@@ -707,7 +707,7 @@ class DirectJob(Rollback):
                     allowed = {s['memory'] for spans in earlier for s in spans if s['offset'] == at and s['length'] == size}
                     allowed.add(target['appFw.so'][at:at + size].hex())
                     if span['disk'] != current['appFw.so'][at:at + size].hex() or span['memory'] not in allowed:
-                        raise ValueError('运行中程序与已记录的原状态／目标不符；保留日志，不自动重试')
+                        raise ValueError('실행 중인 프로그램이 기록된 원래 상태／목표와 다릅니다. 로그를 보존하며 자동으로 재시도하지 않습니다')
                 self.state['source_boot_id'] = runtime['boot_id'].strip()
                 for build in programs:
                     self.native(camera, 'program', 0, build)
@@ -715,7 +715,7 @@ class DirectJob(Rollback):
                 if names:
                     self.native(camera, 'names', 4, names)
                 self.save('PREFLIGHT_VERIFIED')
-                print('续接计划：剩余程序批次 %d，剩余名称文件 %d；已符合目标的内容不重复写入。' %
+                print('이어 가기 계획: 남은 프로그램 배치 %d, 남은 이름 파일 %d. 이미 목표와 일치하는 내용은 다시 쓰지 않습니다.' %
                       (len(programs), names['count'] if names else 0), flush=True)
                 self.save('WRITING')
                 prepared=self.prepare_factory_settings(camera,prepared)
@@ -730,7 +730,7 @@ class DirectJob(Rollback):
                     name_result = self.native(camera, 'names', 2, names)
                     if name_result and name_result.get('readonly_deferred_busy'):
                         self.state['readonly_deferred_busy'] = True
-                        print('名称内容已完成；只读挂载忙碌，待完成设置后断电重开核对。', flush=True)
+                        print('이름 내용은 완료되었습니다. 읽기 전용 마운트가 사용 중이라 설정을 마친 뒤 전원을 완전히 끄고 다시 켜서 확인해야 합니다.', flush=True)
                 self.readback(camera, target)
                 self.save('RESTORING_SETTINGS')
                 self.restore_settings(camera, prepared)
@@ -739,7 +739,7 @@ class DirectJob(Rollback):
                     self.native(camera, 'wbi', 0)
                     self.native(camera, 'wbi', 1)
             self.save('AWAITING_RELOAD')
-            print('恢复完成，所有读写已结束。拔 USB 和其他外部供电，等存取灯停止闪烁，再正常关机并等屏幕和灯完全熄灭；取下电池至少一分钟，再装回开机、检查并核对。', flush=True)
+            print('복원 완료, 모든 읽기/쓰기가 끝났습니다. USB와 다른 외부 전원을 분리하고, 액세스 램프가 깜박임을 멈출 때까지 기다린 뒤 정상적으로 전원을 끄고 화면과 램프가 완전히 꺼질 때까지 기다리세요. 배터리를 최소 1분간 분리했다가 다시 넣고 전원을 켠 뒤 점검하고 확인하세요.', flush=True)
             return self.state
         except BaseException as exc:
             self.save('NEEDS_REVIEW', error=str(exc))
@@ -801,20 +801,20 @@ class DirectJob(Rollback):
             runtime = self.native(camera, 'runtime', 0)
             if self.state['mode'] == 'factory_reset':
                 if runtime.get('usr_mount_readonly') is not True:
-                    raise ValueError('原厂恢复后的 /usr 只读挂载尚未确认；不标记恢复完成，请保留日志')
+                    raise ValueError('공장 복원 후 /usr 읽기 전용 마운트가 아직 확인되지 않았습니다. 복원 완료로 표시하지 않습니다. 로그를 보존하세요')
                 self.state['readonly_after_reload_verified'] = True
             if self.state['phase'] == 'AWAITING_RELOAD':
                 before_boot = self.state.get('source_boot_id')
                 current_boot = runtime.get('boot_id', '').strip()
                 if not before_boot or not current_boot or before_boot == current_boot:
-                    raise ValueError('尚未确认新的冷启动。完成断电重开后再核对，不要重复写入。')
+                    raise ValueError('새 콜드 부팅이 아직 확인되지 않았습니다. 전원을 완전히 끄고 다시 켠 뒤 확인하세요. 다시 쓰지 마세요.')
             for span in runtime['spans']:
                 expected = target['appFw.so'][span['offset']:span['offset'] + span['length']].hex()
                 if span['memory'] != expected or span['disk'] != expected:
                     raise ValueError('Old application remains loaded; complete the cold restart')
             if self.state.get('names_cleanup_pending'):
                 if runtime.get('usr_mount_readonly') is not True:
-                    raise ValueError('名称写入已完成，但尚未确认新开机后的只读挂载；不清理旧资源')
+                    raise ValueError('이름 쓰기는 끝났지만 새로 부팅한 뒤의 읽기 전용 마운트가 아직 확인되지 않았습니다. 이전 리소스는 정리하지 않습니다')
                 old = self.state['forward_name_build']
                 actual = {n: current['resources/' + n] for n in nameworker.filenames()}
                 build = nameworker.prepare_cleanup(old, self.root / 'names/names.private.h', actual,

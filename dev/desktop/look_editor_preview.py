@@ -64,27 +64,27 @@ class Operation(W.QFrame):
         self.file_path=''
         box=W.QVBoxLayout(self);box.setContentsMargins(17,15,17,15);box.setSpacing(12)
         top=W.QHBoxLayout();box.addLayout(top)
-        top.addWidget(label('目标槽位',muted=True))
+        top.addWidget(label('대상 슬롯',muted=True))
         self.slot=Choice()
-        for number in range(1,7):self.slot.addItem('自订 '+str(number),number)
+        for number in range(1,7):self.slot.addItem('커스텀 '+str(number),number)
         self.slot.setCurrentIndex(slot-1);self.slot.setFixedWidth(115)
         top.addWidget(self.slot);top.addSpacing(18)
-        top.addWidget(label('本次操作',muted=True))
-        self.action=Choice();self.action.addItems(['恢复 ST 默认','写入 A7Look'])
+        top.addWidget(label('이번 작업',muted=True))
+        self.action=Choice();self.action.addItems(['ST 기본값으로 복원','A7Look 쓰기'])
         self.action.setFixedWidth(160);top.addWidget(self.action);top.addStretch()
-        remove=W.QPushButton('移除这项');remove.setProperty('quiet',True)
-        remove.setToolTip('仅移除此操作项，该槽保持原样')
+        remove=W.QPushButton('이 항목 제거');remove.setProperty('quiet',True)
+        remove.setToolTip('이 작업 항목만 제거하며, 해당 슬롯은 그대로 유지됩니다')
         remove.clicked.connect(lambda:self.remove_requested.emit(self));top.addWidget(remove)
         self.details=W.QStackedWidget();self.details.setObjectName('operationStack');box.addWidget(self.details)
         restore=W.QWidget();restore.setObjectName('operationDetails');restore_box=W.QHBoxLayout(restore);restore_box.setContentsMargins(0,0,0,0)
-        note=label('此槽恢复为 ST 默认；不会找回导入前的旧配方。',muted=True)
+        note=label('이 슬롯을 ST 기본값으로 복원합니다. 가져오기 전의 이전 레시피는 되찾지 않습니다.',muted=True)
         restore_box.addWidget(note);restore_box.addStretch();self.details.addWidget(restore)
         write=W.QWidget();write.setObjectName('operationDetails');grid=W.QGridLayout(write);grid.setContentsMargins(0,0,0,0);grid.setHorizontalSpacing(12);grid.setVerticalSpacing(6)
-        grid.addWidget(label('A7Look 文件',muted=True),0,0)
-        grid.addWidget(label('机内显示名称',muted=True),0,2)
-        self.file=W.QLineEdit();self.file.setReadOnly(True);self.file.setPlaceholderText('请选择 .a7look 文件')
-        self.browse=W.QPushButton('选择文件…');self.browse.clicked.connect(self.choose_file)
-        self.name=W.QLineEdit();self.name.setPlaceholderText('留空沿用文件内名称')
+        grid.addWidget(label('A7Look 파일',muted=True),0,0)
+        grid.addWidget(label('카메라 표시 이름',muted=True),0,2)
+        self.file=W.QLineEdit();self.file.setReadOnly(True);self.file.setPlaceholderText('.a7look 파일을 선택하세요')
+        self.browse=W.QPushButton('파일 선택…');self.browse.clicked.connect(self.choose_file)
+        self.name=W.QLineEdit();self.name.setPlaceholderText('비워 두면 파일 내 이름 사용')
         grid.addWidget(self.file,1,0);grid.addWidget(self.browse,1,1);grid.addWidget(self.name,1,2)
         grid.setColumnStretch(0,3);grid.setColumnStretch(2,2);self.details.addWidget(write)
         self.action.currentIndexChanged.connect(self.update_mode)
@@ -99,7 +99,7 @@ class Operation(W.QFrame):
         self.changed.emit()
 
     def choose_file(self):
-        path=W.QFileDialog.getOpenFileName(self,'选择 A7Look 文件',self.file_path,'A7Look (*.a7look)')[0]
+        path=W.QFileDialog.getOpenFileName(self,'A7Look 파일 선택',self.file_path,'A7Look (*.a7look)')[0]
         if path:self.set_file(path)
 
     def set_file(self,path):
@@ -114,34 +114,34 @@ class Operation(W.QFrame):
 class Preview(W.QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('A7C II Tools · 自定义创意外观 UI 预览（不连接相机）')
+        self.setWindowTitle('A7C II Tools · 커스텀 크리에이티브 룩 UI 미리보기(카메라 연결 안 함)')
         self.resize(1240,940);self.setMinimumSize(1070,790);self.setStyleSheet(STYLE)
         self.rows=[]
         center=W.QWidget();self.setCentralWidget(center)
         outer=W.QHBoxLayout(center);outer.setContentsMargins(0,0,0,0);outer.setSpacing(0)
         nav=W.QListWidget();nav.setFixedWidth(202)
-        nav.addItems(['首页 · 一键安装','连接与驱动','恢复原厂功能','FL2 / FL3','自定义创意外观','竖屏显示','电子快门声音'])
+        nav.addItems(['홈 · 원클릭 설치','연결 및 드라이버','공장 기능 복원','FL2 / FL3','커스텀 크리에이티브 룩','세로 표시','전자 셔터음'])
         nav.setCurrentRow(4);nav.setFocusPolicy(QtCore.Qt.NoFocus)
         outer.addWidget(nav)
         content=W.QWidget();outer.addWidget(content,1)
         layout=W.QVBoxLayout(content);layout.setContentsMargins(29,25,29,20);layout.setSpacing(15)
         head=W.QHBoxLayout();head.addWidget(label('A7C II Tools'));head.addStretch()
-        badge=label('界面预览 · 不连接相机');badge.setProperty('badge',True);head.addWidget(badge)
+        badge=label('화면 미리보기 · 카메라 연결 안 함');badge.setProperty('badge',True);head.addWidget(badge)
         layout.addLayout(head)
-        title=label('自定义创意外观');title.setProperty('title',True);layout.addWidget(title)
-        layout.addWidget(label('按需添加本次要改的槽位。未添加的槽位保持原样。',muted=True))
+        title=label('커스텀 크리에이티브 룩');title.setProperty('title',True);layout.addWidget(title)
+        layout.addWidget(label('이번에 바꿀 슬롯만 필요한 만큼 추가하세요. 추가하지 않은 슬롯은 그대로 유지됩니다.',muted=True))
         toolbar=W.QHBoxLayout()
-        self.add=W.QPushButton('+ 添加操作项');self.add.clicked.connect(lambda:self.add_row());toolbar.addWidget(self.add)
-        toolbar.addWidget(label('新增项默认“恢复 ST 默认”，可切换为写入。',muted=True));toolbar.addStretch()
+        self.add=W.QPushButton('+ 작업 항목 추가');self.add.clicked.connect(lambda:self.add_row());toolbar.addWidget(self.add)
+        toolbar.addWidget(label('새 항목의 기본값은 "ST 기본값으로 복원"이며, 쓰기로 바꿀 수 있습니다.',muted=True));toolbar.addStretch()
         layout.addLayout(toolbar)
         self.scroll=W.QScrollArea();self.scroll.setWidgetResizable(True);layout.addWidget(self.scroll,1)
         self.row_container=W.QWidget();self.row_box=W.QVBoxLayout(self.row_container)
         self.row_box.setContentsMargins(0,0,4,0);self.row_box.setSpacing(12)
         self.empty=W.QFrame();self.empty.setProperty('card',True)
         empty_layout=W.QVBoxLayout(self.empty);empty_layout.setContentsMargins(30,43,30,43);empty_layout.setSpacing(12)
-        empty_title=label('尚未添加操作项');empty_title.setStyleSheet('font-size:18px;font-weight:600;');empty_title.setAlignment(QtCore.Qt.AlignCenter)
+        empty_title=label('아직 추가한 작업 항목이 없습니다');empty_title.setStyleSheet('font-size:18px;font-weight:600;');empty_title.setAlignment(QtCore.Qt.AlignCenter)
         empty_layout.addWidget(empty_title)
-        empty_text=label('点击“添加操作项”，选择目标槽位和操作。\n当前六个槽位均保持原样。',muted=True)
+        empty_text=label('"작업 항목 추가"를 눌러 대상 슬롯과 작업을 선택하세요.\n현재 6개 슬롯은 모두 그대로 유지됩니다.',muted=True)
         empty_text.setAlignment(QtCore.Qt.AlignCenter);empty_layout.addWidget(empty_text)
         self.row_box.addWidget(self.empty);self.row_box.addStretch();self.scroll.setWidget(self.row_container)
         summary=W.QFrame();summary.setProperty('card',True)
@@ -150,13 +150,13 @@ class Preview(W.QMainWindow):
         self.preserved=label('',muted=True);summary_layout.addWidget(self.preserved)
         self.validation=label('');self.validation.setProperty('warning',True);summary_layout.addWidget(self.validation)
         layout.addWidget(summary)
-        self.review=W.QPushButton('查看并确认本次更改');self.review.setProperty('primary',True)
+        self.review=W.QPushButton('이번 변경 사항 확인');self.review.setProperty('primary',True)
         self.review.clicked.connect(self.review_plan);layout.addWidget(self.review)
         tools=W.QHBoxLayout()
-        for name in ['从 DCP／LUT 生成 A7Look…','安装 LrC 自动识别插件…']:
+        for name in ['DCP／LUT로 A7Look 생성…','LrC 자동 인식 플러그인 설치…']:
             button=W.QPushButton(name);button.clicked.connect(self.preview_only);tools.addWidget(button)
         layout.addLayout(tools)
-        layout.addWidget(label('仅更改清单内的槽位。保留 FL23、声音与竖屏设置。',muted=True))
+        layout.addWidget(label('목록에 있는 슬롯만 변경합니다. FL23, 사운드, 세로 표시 설정은 유지됩니다.',muted=True))
         self.update_summary()
 
     def add_row(self,slot=None):
@@ -179,26 +179,26 @@ class Preview(W.QMainWindow):
         for row in self.rows:
             for index in range(6):row.slot.model().item(index).setEnabled(index+1 not in occupied or index+1==row.slot.currentData())
         writes=sum(row['action']=='write' for row in plan);restores=len(plan)-writes
-        self.summary.setText('本次更改 %d 个槽位：%d 项写入 · %d 项恢复'%(len(plan),writes,restores))
+        self.summary.setText('이번에 %d개 슬롯 변경: 쓰기 %d개 · 복원 %d개'%(len(plan),writes,restores))
         untouched=[str(n) for n in range(1,7) if n not in occupied]
-        self.preserved.setText('保持原样：'+('自订 '+'、'.join(untouched) if untouched else '无（六个槽位均在本次清单中）'))
+        self.preserved.setText('그대로 유지: '+('커스텀 '+'、'.join(untouched) if untouched else '없음(6개 슬롯 모두 이번 목록에 있음)'))
         errors=[]
-        if len(slots)!=len(occupied):errors.append('同一槽位只能添加一个操作。')
+        if len(slots)!=len(occupied):errors.append('같은 슬롯에는 작업을 하나만 추가할 수 있습니다.')
         missing=[str(row['slot']) for row in plan if row['action']=='write' and not row['file']]
-        if missing:errors.append('请为自订 '+'、'.join(missing)+' 选择 A7Look 文件。')
+        if missing:errors.append('커스텀 '+'、'.join(missing)+'에 사용할 A7Look 파일을 선택하세요.')
         self.validation.setText(' '.join(errors));self.validation.setVisible(bool(errors))
         self.review.setEnabled(bool(plan) and not errors)
-        self.review.setText('查看并确认这 %d 项更改'%len(plan) if plan else '添加操作项后继续')
+        self.review.setText('이 %d개 변경 사항 확인'%len(plan) if plan else '작업 항목을 추가한 뒤 계속')
 
     def review_plan(self):
-        lines=['这是 UI 预览，不会连接或写入相机。','']
+        lines=['UI 미리보기이며 카메라에 연결하거나 쓰지 않습니다.','']
         for row in self.plan():
-            if row['action']=='restore':lines.append('自订 %s → 恢复 ST 默认'%row['slot'])
-            else:lines.append('自订 %s → 写入 %s\n机内名称：%s'%(row['slot'],Path(row['file']).name,row['name'] or '沿用文件内名称'))
+            if row['action']=='restore':lines.append('커스텀 %s → ST 기본값으로 복원'%row['slot'])
+            else:lines.append('커스텀 %s → %s 쓰기\n카메라 표시 이름: %s'%(row['slot'],Path(row['file']).name,row['name'] or '파일 내 이름 사용'))
         lines.extend(['',self.preserved.text()])
-        W.QMessageBox.information(self,'确认本次操作 · 界面预览','\n\n'.join(lines))
+        W.QMessageBox.information(self,'이번 작업 확인 · 화면 미리보기','\n\n'.join(lines))
 
-    def preview_only(self):W.QMessageBox.information(self,'界面预览','此处仅展示入口；本预览不安装插件、不转换文件，也不操作相机。')
+    def preview_only(self):W.QMessageBox.information(self,'화면 미리보기','여기서는 진입점만 보여 줍니다. 이 미리보기는 플러그인을 설치하거나 파일을 변환하거나 카메라를 조작하지 않습니다.')
 
     def example(self):
         one=self.add_row(2);one.action.setCurrentIndex(1);one.set_file('Classic Chrome.a7look');one.name.setText('Classic Chrome')

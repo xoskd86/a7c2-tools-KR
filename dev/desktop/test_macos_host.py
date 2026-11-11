@@ -94,14 +94,14 @@ def test_partition_parent_outside_camera_subtree_is_rejected():
 def test_busy_volume_stops_before_capture_with_details(capsys):
     fake=Mac({'disk4s1':'/Volumes/CAMERA'},returncode=1,stderr='in use by Photos')
     a,b,c,d=fake.patches()
-    with a,b,c,d,pytest.raises(RuntimeError,match='照片'):host.unmount_camera()
+    with a,b,c,d,pytest.raises(RuntimeError,match='사진'):host.unmount_camera()
     assert 'in use by Photos' in capsys.readouterr().err
 
 
 def test_volume_still_mounted_after_unmount_stops_before_capture():
     fake=Mac({'disk4s1':'/Volumes/CAMERA'},stays_mounted=True)
     a,b,c,d=fake.patches()
-    with a,b,c,d,pytest.raises(RuntimeError,match='未能全部卸载'):host.unmount_camera()
+    with a,b,c,d,pytest.raises(RuntimeError,match='모두 마운트 해제하지 못해'):host.unmount_camera()
 
 
 def test_failed_claim_reattaches_detached_driver():
@@ -129,14 +129,14 @@ def test_normal_return_waits_and_prompts_for_msc(capsys):
         return value
     with patch.object(host.time,'sleep'),patch('usb.util.dispose_resources'):
         assert host.wait_normal_return(find) is True
-    assert '影像传输（MSC）' in capsys.readouterr().out
+    assert '대용량 저장장치(MSC)' in capsys.readouterr().out
 
 
 def test_normal_return_timeout_is_reported_not_raised(capsys):
     clock=iter([0,0,host.NORMAL_RETURN_SECONDS+1])
     with patch.object(host.time,'sleep'),patch.object(host.time,'monotonic',side_effect=lambda:next(clock)):
         assert host.wait_normal_return(lambda:None) is False
-    assert '未恢复' in capsys.readouterr().out
+    assert '복구되지 않았습니다' in capsys.readouterr().out
 
 
 def test_normal_return_handles_readonly_enumeration_error(capsys):

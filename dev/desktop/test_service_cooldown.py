@@ -54,18 +54,18 @@ def test_bounce_back_to_msc_is_retried_after_cooldown(monkeypatch, capsys):
     out = capsys.readouterr().out
     assert camera.auths == 2
     assert transport.SERVICE_COOLDOWN in [round(s) for s in camera.sleeps]
-    assert '0d68' in out and '第 2/3 次' in out
+    assert '0d68' in out and '2/3회' in out
 
 
 def test_gives_up_after_three_bounces_without_service(monkeypatch):
     camera = Camera(monkeypatch, bounces=3)
-    with pytest.raises(RuntimeError, match='已嘗試 3 次'):transport.Session().__enter__()
+    with pytest.raises(RuntimeError, match='3회 시도'):transport.Session().__enter__()
     assert camera.auths == 3
 
 
 def test_bounce_without_msc_return_is_not_retried(monkeypatch):
     camera = Camera(monkeypatch, bounces=1, msc_returns=False)
-    with pytest.raises(RuntimeError, match='未回到普通 USB'):transport.Session().__enter__()
+    with pytest.raises(RuntimeError, match='일반 USB로 돌아오지 않았습니다'):transport.Session().__enter__()
     assert camera.auths == 1
 
 
@@ -103,7 +103,7 @@ def test_seen_service_with_unopenable_interface_does_not_reauthenticate(monkeypa
         if pid==0x0336:raise RuntimeError('service driver unavailable')
         return get(pid)
     monkeypatch.setattr(transport,'get_device',open_device)
-    with pytest.raises(RuntimeError,match='0336 已出现'):transport.Session().__enter__()
+    with pytest.raises(RuntimeError,match='0336이 나타났지만'):transport.Session().__enter__()
     assert camera.auths==1
 
 

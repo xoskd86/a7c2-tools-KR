@@ -89,8 +89,8 @@ def _convert(source, root, *, start, duration, peak, ffmpeg):
     samples, _ = native_codec.read_wav(wav)
     if max(map(abs, samples)) <= SILENT:
         # Many files open with silence; normalizing it would only amplify noise.
-        raise ValueError('所选片段（起点 %.3f 秒，长度 %.3f 秒）几乎没有声音。很多音频开头是一段静音，'
-                         '请把起点移到声音出现的位置，或加长片段后重新转换。' % (start, frames / rate))
+        raise ValueError('선택한 구간(시작 %.3f초, 길이 %.3f초)에는 소리가 거의 없습니다. 많은 오디오는 시작 부분이 무음이므로, '
+                         '시작점을 소리가 나오는 위치로 옮기거나 구간을 늘린 뒤 다시 변환하세요.' % (start, frames / rate))
     fade = min(round(rate * 0.002), len(samples) // 2)
     for i in range(fade):
         scale = i / fade

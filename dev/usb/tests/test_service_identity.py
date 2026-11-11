@@ -66,15 +66,15 @@ class SessionTests(unittest.TestCase):
         with t.Session() as link:self.assertEqual(link.identity,self.expected())
     def test_wrong_body_stops_and_exits_service_before_any_settings_write(self):
         expected=self.expected();expected['serial_sha256']='other'
-        with self.assertRaisesRegex(RuntimeError,'備份機身不同'):t.Session(expected).__enter__()
+        with self.assertRaisesRegex(RuntimeError,'백업한 본체와 다릅니다'):t.Session(expected).__enter__()
         self.assertIn(('stop',0x0336),self.events);self.camera.writeBackup.assert_not_called()
     def test_wrong_usb_model_does_not_authenticate(self):
         self.product='ILCE-7CR'
-        with self.assertRaisesRegex(RuntimeError,'USB 型號不符'):t.Session().__enter__()
+        with self.assertRaisesRegex(RuntimeError,'USB 모델 불일치'):t.Session().__enter__()
         self.assertFalse(any(e[0]=='auth' for e in self.events))
     def test_missing_serial_exits_service_without_writes(self):
         self.serial=b'bad'
-        with self.assertRaisesRegex(RuntimeError,'序列號屬性'):t.Session().__enter__()
+        with self.assertRaisesRegex(RuntimeError,'시리얼 번호 속성'):t.Session().__enter__()
         self.assertIn(('stop',0x0336),self.events);self.camera.writeBackup.assert_not_called()
     def test_snapshot_timeout_stops_commands_and_does_not_repeat_auth(self):
         for error in (TimeoutError('unknown read'),KeyboardInterrupt()):
@@ -97,7 +97,7 @@ class SessionTests(unittest.TestCase):
     def test_missing_service_identity_has_bounded_wait(self):
         self.missing_service=True
         t._service_exit=None  # a cooldown left by an earlier test in this process
-        with self.assertRaisesRegex(RuntimeError,'服務身份未出現.*已嘗試 3 次'):t.Session().__enter__()
+        with self.assertRaisesRegex(RuntimeError,'서비스 ID가 나타나지 않았습니다.*3회 시도'):t.Session().__enter__()
         # Each attempt waits SERVICE_WAIT for 0336, then cools down before re-authenticating.
         self.assertEqual([e for e in self.events if e[0]=='auth'],[('auth',0x0e8a)]*t.SERVICE_ATTEMPTS)
         self.assertLessEqual(self.clock,t.SERVICE_ATTEMPTS*(t.SERVICE_WAIT+1)+(t.SERVICE_ATTEMPTS-1)*t.SERVICE_COOLDOWN)

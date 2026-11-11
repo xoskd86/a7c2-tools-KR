@@ -110,7 +110,7 @@ class Bounded(UsbBackend):
     def reset(self):self.deadline=time.monotonic()+self.budget
     def timeout(self,t=None):
         left=int((self.deadline-time.monotonic())*1000)
-        if left<=0:raise TimeoutError('相機操作超出有界等待時間')
+        if left<=0:raise TimeoutError('카메라 작업이 제한된 대기 시간을 초과했습니다')
         return max(1,min(left,t or self.budget*1000))
     def read(self,ep,length,timeout=None):return super().read(ep,length,self.timeout(timeout))
     def write(self,ep,data):
@@ -122,10 +122,10 @@ class Bounded(UsbBackend):
 
 def get_device(pid):
     backend=usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)
-    if backend is None:raise RuntimeError('找不到 libusb 程式庫')
+    if backend is None:raise RuntimeError('libusb 라이브러리를 찾을 수 없습니다')
     found=list(usb.core.find(find_all=True,idVendor=0x054c,idProduct=pid,backend=backend))
-    if len(found)!=1:raise RuntimeError(f'需要且只能連接一台目標相機（USB {pid:04x}）；請確認大量儲存模式及驅動')
-    if not list(found[0]):raise RuntimeError('無法讀取 USB 配置')
+    if len(found)!=1:raise RuntimeError(f'대상 카메라를 정확히 한 대만 연결해야 합니다(USB{pid:04x}). 대용량 저장장치 모드와 드라이버를 확인하세요')
+    if not list(found[0]):raise RuntimeError('USB 구성을 읽을 수 없습니다')
     return found[0]
 
 # Initial USB startup fix v1: only the pre-authentication information query.
@@ -142,9 +142,9 @@ POLL_INTERVAL=1
 class _InitialProgress:
     def event(self,kind,**values):
         if kind=='readiness' and values['attempt']==1 and values['sense']!=[0,0,0]:
-            print('等待相機完成 USB 初始化。',flush=True)
+            print('카메라가 USB 초기화를 마칠 때까지 기다리는 중입니다.',flush=True)
         elif kind=='sony_query_status' and values['attempt']==1 and values['sense']==[9,129,129]:
-            print('相機正在準備機身資訊，稍候再讀取。',flush=True)
+            print('카메라가 본체 정보를 준비하는 중입니다. 잠시 후 다시 읽습니다.',flush=True)
 
 class _InitialBackend(Bounded):
     def __init__(self,device,report):
@@ -242,16 +242,16 @@ def identity():
     dev=get_device(0x0e8a)
     try:
         info=_query_initial_ready(dev)
-        if info.modelName!=core.MODEL:raise RuntimeError('只支援 '+core.MODEL)
+        if info.modelName!=core.MODEL:raise RuntimeError('지원 대상: '+core.MODEL)
         return {'model':info.modelName,'serial_sha256':core.sha(info.serial.encode())}
     finally:usb.util.dispose_resources(dev)
 
 def service_identity(snapshot,model):
     """Keep the original normal-query binding without that application query."""
-    if model!=core.MODEL:raise RuntimeError('只支援 '+core.MODEL)
+    if model!=core.MODEL:raise RuntimeError('지원 대상: '+core.MODEL)
     serial=core.backup_records(snapshot)[0].get(0x00e70003)
     if serial is None or len(serial.data)!=4:
-        raise RuntimeError('服務備份缺少四位元組序列號屬性 00e70003')
+        raise RuntimeError('서비스 백업에 4바이트 시리얼 번호 속성 00e70003이 없습니다')
     # getCameraInfo hexlifies its four serial bytes before the old tool hashes
     # the text. Hashing the raw bytes would break existing per-body backups.
     return {'model':model,'serial_sha256':core.sha(serial.data.hex().encode('ascii'))}
@@ -269,7 +269,7 @@ def _cool_down():
     if _service_exit is None:return
     left=SERVICE_COOLDOWN-(time.monotonic()-_service_exit)
     if left>0:
-        print('等待相机从上一次服务模式恢复（%d 秒）。'%round(left),flush=True)
+        print('카메라가 이전 서비스 모드에서 복구되기를 기다리는 중(%d초).'%round(left),flush=True)
         time.sleep(left)
 
 
@@ -310,10 +310,10 @@ def _rescue_service():
         try:auth.start();auth.authenticate()
         except Exception:pass
         auth.stop()
-        print('只读通信出错后，已让相机退出服务模式（未写入相机）。',flush=True)
+        print('읽기 전용 통신 오류 후 카메라를 서비스 모드에서 빠져나오게 했습니다(카메라에 쓰지 않음).',flush=True)
         return True
     except Exception as exc:
-        print('相机未能自动退出服务模式（%s）；请拔 USB、取电池约 1 分钟后重开。'%exc,flush=True)
+        print('카메라가 서비스 모드에서 자동으로 빠져나오지 못했습니다(%s). USB를 뽑고 배터리를 약 1분간 분리한 뒤 다시 켜세요.'%exc,flush=True)
         return False
     finally:usb.util.dispose_resources(dev)
 
@@ -340,7 +340,7 @@ class Session:
                 # Standard USB strings remain usable when the storage LUN and
                 # DevInfoSender_GetModelInfo are busy. Neither is a service gate.
                 model=usb.util.get_string(dev,dev.iProduct) if dev.iProduct else None
-                if model!=core.MODEL:raise RuntimeError('只支援 '+core.MODEL+'；USB 型號不符')
+                if model!=core.MODEL:raise RuntimeError('지원 대상: '+core.MODEL+'; USB 모델 불일치')
                 auth=SonySenserAuthDevice(GenericUsbDriver(Bounded(dev,20)))
                 auth.start();auth.authenticate()
                 # An authentication error is not retried or followed by stop.
@@ -349,16 +349,16 @@ class Session:
             self.dev=_wait_for(0x0336,SERVICE_WAIT,seen,prepare=SERVICE_DRIVER_SETUP)
             if self.dev is not None:break
             if '0336' in seen:
-                raise RuntimeError('服务身份 0336 已出现，但接口无法打开；请保留驱动与 USB 日志，不重新认证。')
+                raise RuntimeError('서비스 ID 0336이 나타났지만 인터페이스를 열 수 없습니다. 드라이버와 USB 로그를 보존하고, 다시 인증하지 마세요.')
             # No service identity ever appeared, so no service session exists
             # and nothing was sent to the camera after authentication.
-            print('认证后相机未进入服务模式（期间出现的 Sony USB 身份：%s）。'%('、'.join(seen) or '无'),flush=True)
+            print('인증 후 카메라가 서비스 모드로 진입하지 않았습니다(그동안 나타난 Sony USB ID: %s).'%(', '.join(seen) or '없음'),flush=True)
             if attempt==SERVICE_ATTEMPTS:
-                raise RuntimeError('服務身份未出現；若是第一次，請依文件安裝0336驅動（已嘗試 %d 次）'%attempt)
+                raise RuntimeError('서비스 ID가 나타나지 않았습니다. 처음이라면 문서에 따라 0336 드라이버를 설치하세요(%d회 시도)'%attempt)
             if _wait_for(0x0e8a,60,seen) is None:
-                raise RuntimeError('服務身份未出現，相機也未回到普通 USB；請在相機選擇「影像傳輸（MSC）」後重新連接')
+                raise RuntimeError('서비스 ID가 나타나지 않았고, 카메라도 일반 USB로 돌아오지 않았습니다. 카메라에서 「대용량 저장장치(MSC)」를 선택한 뒤 다시 연결하세요')
             _service_exit=time.monotonic()
-            print('相机已回到普通 USB，冷却后自动重试（第 %d/%d 次）。'%(attempt+1,SERVICE_ATTEMPTS),flush=True)
+            print('카메라가 일반 USB로 돌아왔습니다. 잠시 대기 후 자동으로 재시도합니다(%d/%d회).'%(attempt+1,SERVICE_ATTEMPTS),flush=True)
         time.sleep(2)
         if sys.platform=='darwin':
             from macos_host import claim_camera_interface
@@ -373,7 +373,7 @@ class Session:
             self.camera=SonySenserCamera(self.channel)
             snapshot=self.call(self.camera.getBackupPresetData,True)
             self.identity=service_identity(snapshot,model)
-            if self.expected and self.identity!=self.expected:raise RuntimeError('目前機身與備份機身不同')
+            if self.expected and self.identity!=self.expected:raise RuntimeError('현재 카메라 본체가 백업한 본체와 다릅니다')
         except BaseException:
             try:
                 if authenticated and self.healthy:self.auth.stop();_service_exit=time.monotonic()
@@ -396,41 +396,41 @@ class Session:
                 backend=usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)))
         if stopped:_service_exit=time.monotonic()
     def call(self,method,*args):
-        if not self.healthy:raise RuntimeError('會話結果未知，停止後續命令')
+        if not self.healthy:raise RuntimeError('세션 결과를 알 수 없어 이후 명령을 중지합니다')
         if getattr(method,'__name__','') in ('writeBackup','saveBackup'):self.mutating=True
         self.backend.reset()
         try:return method(*args)
         except BaseException:self.healthy=False;raise
     def jiritsu(self,cmd,data=b'',missing=False):
-        if cmd not in [15,16,17,18]:raise ValueError('不允許此 Jiritsu 命令')
+        if cmd not in [15,16,17,18]:raise ValueError('허용되지 않은 Jiritsu 명령입니다')
         if cmd in (16,18):self.mutating=True
         response,out=self.call(self.channel.sendSenserPacket,0x40,struct.pack('<HH',0x1001,cmd)+data)
-        if response or len(out)<4:raise RuntimeError('Jiritsu 回應格式錯誤')
+        if response or len(out)<4:raise RuntimeError('Jiritsu 응답 형식 오류')
         status=struct.unpack_from('<I',out)[0]
         if missing and status==0x10000006:return None
-        if status:raise RuntimeError(f'Jiritsu 狀態 {status:#x}')
+        if status:raise RuntimeError(f'Jiritsu 상태{status:#x}')
         return out[4:]
     def select(self,path):
-        if not path.startswith('/tmp/jiritsu/') or '\0' in path or len(path)>510:raise ValueError('路徑不符')
+        if not path.startswith('/tmp/jiritsu/') or '\0' in path or len(path)>510:raise ValueError('경로 불일치')
         self.jiritsu(15,b'\0'+path.encode('ascii')+b'\0')
     def read(self,path,missing=False):self.select(path);return self.jiritsu(17,b'\0\xff\0',missing)
     def temp(self,name,data=None,remove=False):
-        if name not in core.NATIVE_PATHS:raise ValueError('不是指定臨時檔')
+        if name not in core.NATIVE_PATHS:raise ValueError('지정된 임시 파일이 아닙니다')
         path='/tmp/jiritsu/'+name;self.select(path)
         if remove:self.jiritsu(18,b'\0\xff')
         elif data:
-            if len(data)>65536:raise ValueError('臨時檔過大')
+            if len(data)>65536:raise ValueError('임시 파일이 너무 큽니다')
             self.jiritsu(16,b'\0\xff\0'+data)
-        else:raise ValueError('不允許空檔寫入')
+        else:raise ValueError('빈 파일 쓰기는 허용되지 않습니다')
     def cp_read(self,key):
-        if key not in core.CP_KEYS:raise ValueError('不允許此 CP 單元')
+        if key not in core.CP_KEYS:raise ValueError('허용되지 않은 CP 유닛입니다')
         return self.call(self.camera._sendAdjustControlPacket,0x603,0x40,struct.pack('<II',key,1))
     def cp_write(self,key,data):
-        if key not in core.CP_KEYS or len(data)!={core.CP_KEYS[0]:8192,core.CP_KEYS[1]:28672}[key]:raise ValueError('CP 寫入目標或長度不符')
+        if key not in core.CP_KEYS or len(data)!={core.CP_KEYS[0]:8192,core.CP_KEYS[1]:28672}[key]:raise ValueError('CP 쓰기 대상 또는 길이 불일치')
         self.mutating=True
         return self.call(self.camera._sendAdjustControlPacket,0x603,0x41,struct.pack('<II',key,1)+data)
     def ap_write(self,key,data):
-        if key not in core.AP_KEYS or len(data)!=1:raise ValueError('AP 綁定目標或長度不符')
+        if key not in core.AP_KEYS or len(data)!=1:raise ValueError('AP 바인딩 대상 또는 길이 불일치')
         self.mutating=True
         return self.call(self.camera.writeBackup,key,data)
 
