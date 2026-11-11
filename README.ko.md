@@ -287,7 +287,7 @@
 
 | 커스텀 슬롯 | 1 | 2 | 3 | 4 | 5 | 6 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 룩 | Classic Neg. (NC) | Classic Chrome (CC) | Nostalgic Neg. (NN) | Astia | GR 포지티브 필름 | GR 네거티브 필름 |
+| 룩 | Classic Neg. (NC) | Classic Chrome (CC) | Nostalgic Neg. (NN) | Astia | GR Positive Film | GR Negative Film |
 
 직접 만든 룩을 설치하려면 내장 6종의 체크를 해제하고, **직접 만든 A7Look 파일 사용(먼저 내장 6종 체크 해제)**을 펼쳐 슬롯마다 `.a7look` 파일을 고르세요. 비워 둔 슬롯은 그대로 유지됩니다.
 
@@ -418,7 +418,7 @@
 
 카메라 JPEG를 크기 조정, 배치, 라벨링만 했으며 노출, 화이트 밸런스, 색은 편집하지 않았습니다. 촬영 설정이 제각각이므로 통제된 측정이 아니라 시각적 예시입니다.
 
-각 장면은 세 장의 비교 이미지를 순서대로 보여 줍니다: **ST / FL / FL2 / FL3**, **ST / NC / CC / NN**, **ST / E / GR 포지티브 / GR 네거티브**. 각 격자는 왼쪽 위, 오른쪽 위, 왼쪽 아래, 오른쪽 아래 순으로 보세요. NC = Classic Neg., CC = Classic Chrome, NN = Nostalgic Neg., E = Eterna이며, Astia는 포함되지 않았습니다.
+각 장면은 세 장의 비교 이미지를 순서대로 보여 줍니다: **ST / FL / FL2 / FL3**, **ST / NC / CC / NN**, **ST / E / GR Positive / GR Negative**. 각 격자는 왼쪽 위, 오른쪽 위, 왼쪽 아래, 오른쪽 아래 순으로 보세요. NC = Classic Neg., CC = Classic Chrome, NN = Nostalgic Neg., E = Eterna이며, Astia는 포함되지 않았습니다.
 
 [원본 해상도 비교 이미지 19장 전체 내려받기(약 152 MB)](https://github.com/QAQLeonard/a7c2-fl23-research/releases/download/v2.1/a7c2-film-comparisons-2026-10-18.zip), 첫 번째 장면의 추가 ST 비교와 개요 포함.
 
@@ -428,7 +428,7 @@
 
 ![01 · 음료 진열장 — ST / NC / CC / NN](docs/images/film-comparison/01_饮料柜/01-2_ST_NC_CC_NN.jpg)
 
-![01 · 음료 진열장 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/01_饮料柜/01-3_ST_E_GR正片_GR负片.jpg)
+![01 · 음료 진열장 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/01_饮料柜/01-3_ST_E_GR正片_GR负片.jpg)
 
 **02 · 식물**
 
@@ -436,7 +436,7 @@
 
 ![02 · 식물 — ST / NC / CC / NN](docs/images/film-comparison/02_绿植/02-2_ST_NC_CC_NN.jpg)
 
-![02 · 식물 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/02_绿植/02-3_ST_E_GR正片_GR负片.jpg)
+![02 · 식물 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/02_绿植/02-3_ST_E_GR正片_GR负片.jpg)
 
 **03 · 카운터**
 
@@ -444,7 +444,7 @@
 
 ![03 · 카운터 — ST / NC / CC / NN](docs/images/film-comparison/03_柜台/03-2_ST_NC_CC_NN.jpg)
 
-![03 · 카운터 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/03_柜台/03-3_ST_E_GR正片_GR负片.jpg)
+![03 · 카운터 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/03_柜台/03-3_ST_E_GR正片_GR负片.jpg)
 
 **04 · 나선 계단**
 
@@ -452,7 +452,7 @@
 
 ![04 · 나선 계단 — ST / NC / CC / NN](docs/images/film-comparison/04_旋转楼梯/04-2_ST_NC_CC_NN.jpg)
 
-![04 · 나선 계단 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/04_旋转楼梯/04-3_ST_E_GR正片_GR负片.jpg)
+![04 · 나선 계단 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/04_旋转楼梯/04-3_ST_E_GR正片_GR负片.jpg)
 
 **05 · 책장**
 
@@ -460,7 +460,7 @@
 
 ![05 · 책장 — ST / NC / CC / NN](docs/images/film-comparison/05_书架/05-2_ST_NC_CC_NN.jpg)
 
-![05 · 책장 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/05_书架/05-3_ST_E_GR正片_GR负片.jpg)
+![05 · 책장 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/05_书架/05-3_ST_E_GR正片_GR负片.jpg)
 
 **06 · 포스터**
 
@@ -468,7 +468,7 @@
 
 ![06 · 포스터 — ST / NC / CC / NN](docs/images/film-comparison/06_海报/06-2_ST_NC_CC_NN.jpg)
 
-![06 · 포스터 — ST / Eterna / GR 포지티브 / GR 네거티브](docs/images/film-comparison/06_海报/06-3_ST_E_GR正片_GR负片.jpg)
+![06 · 포스터 — ST / Eterna / GR Positive / GR Negative](docs/images/film-comparison/06_海报/06-3_ST_E_GR正片_GR负片.jpg)
 
 </details>
 

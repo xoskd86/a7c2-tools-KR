@@ -10,7 +10,7 @@ from .paths import ROOT
 PACK = 'default-six-v1'
 NAMES = ('Classic Neg.', 'Classic Chrome', 'Nostalgic Neg.', 'Astia',
          'GR Positive Film', 'GR Negative Film')
-SUMMARY = '1 NC · 2 CC · 3 NN · 4 Astia · 5 GR 포지 · 6 GR 네거'
+SUMMARY = '1 NC · 2 CC · 3 NN · 4 Astia · 5 GR Positive · 6 GR Negative'
 
 
 def catalog():

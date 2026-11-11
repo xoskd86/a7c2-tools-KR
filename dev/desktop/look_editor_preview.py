@@ -181,11 +181,11 @@ class Preview(W.QMainWindow):
         writes=sum(row['action']=='write' for row in plan);restores=len(plan)-writes
         self.summary.setText('이번에 %d개 슬롯 변경: 쓰기 %d개 · 복원 %d개'%(len(plan),writes,restores))
         untouched=[str(n) for n in range(1,7) if n not in occupied]
-        self.preserved.setText('그대로 유지: '+('커스텀 '+'、'.join(untouched) if untouched else '없음(6개 슬롯 모두 이번 목록에 있음)'))
+        self.preserved.setText('그대로 유지: '+('커스텀 '+', '.join(untouched) if untouched else '없음(6개 슬롯 모두 이번 목록에 있음)'))
         errors=[]
         if len(slots)!=len(occupied):errors.append('같은 슬롯에는 작업을 하나만 추가할 수 있습니다.')
         missing=[str(row['slot']) for row in plan if row['action']=='write' and not row['file']]
-        if missing:errors.append('커스텀 '+'、'.join(missing)+'에 사용할 A7Look 파일을 선택하세요.')
+        if missing:errors.append('커스텀 '+', '.join(missing)+'에 사용할 A7Look 파일을 선택하세요.')
         self.validation.setText(' '.join(errors));self.validation.setVisible(bool(errors))
         self.review.setEnabled(bool(plan) and not errors)
         self.review.setText('이 %d개 변경 사항 확인'%len(plan) if plan else '작업 항목을 추가한 뒤 계속')

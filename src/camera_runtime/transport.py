@@ -124,7 +124,7 @@ def get_device(pid):
     backend=usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)
     if backend is None:raise RuntimeError('libusb 라이브러리를 찾을 수 없습니다')
     found=list(usb.core.find(find_all=True,idVendor=0x054c,idProduct=pid,backend=backend))
-    if len(found)!=1:raise RuntimeError(f'대상 카메라를 정확히 한 대만 연결해야 합니다(USB{pid:04x}). 대용량 저장장치 모드와 드라이버를 확인하세요')
+    if len(found)!=1:raise RuntimeError(f'대상 카메라를 정확히 한 대만 연결해야 합니다(USB {pid:04x}). 대용량 저장장치 모드와 드라이버를 확인하세요')
     if not list(found[0]):raise RuntimeError('USB 구성을 읽을 수 없습니다')
     return found[0]
 
@@ -408,7 +408,7 @@ class Session:
         if response or len(out)<4:raise RuntimeError('Jiritsu 응답 형식 오류')
         status=struct.unpack_from('<I',out)[0]
         if missing and status==0x10000006:return None
-        if status:raise RuntimeError(f'Jiritsu 상태{status:#x}')
+        if status:raise RuntimeError(f'Jiritsu 상태 {status:#x}')
         return out[4:]
     def select(self,path):
         if not path.startswith('/tmp/jiritsu/') or '\0' in path or len(path)>510:raise ValueError('경로 불일치')
