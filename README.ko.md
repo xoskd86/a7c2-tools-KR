@@ -97,11 +97,12 @@
 
 | 시스템 | 다운로드 | 참고 |
 | --- | --- | --- |
-| **Windows 10/11 x64** | [Releases](https://github.com/QAQLeonard/a7c2-fl23-research/releases)의 `A7C2Tools-Windows-x64.zip` | 압축을 전부 풀고 `A7C2Tools.exe`를 실행하세요. `_internal`과 `Profiles` 폴더를 옆에 그대로 두고, EXE만 따로 복사하지 마세요. Python 설치는 필요 없습니다. |
-| **macOS 14+ (Apple Silicon)** | [Releases](https://github.com/QAQLeonard/a7c2-fl23-research/releases)의 `A7C2Tools-macOS-arm64.dmg` | 앱을 응용 프로그램 폴더로 끌어다 놓으세요. 개발자 서명이 없으므로 시스템 설정 → 개인정보 보호 및 보안에서 한 번 허용해야 합니다. Intel 빌드는 없습니다. **실제 Mac에서의 USB는 아직 검증되지 않았습니다.** |
+| **Windows 10/11 x64 (한국어)** | 이 포크의 [Releases](https://github.com/xoskd86/a7c2-tools-KR/releases)에서 `A7C2Tools-Windows-x64-ko.zip` | 압축을 전부 풀고 `A7C2Tools.exe`를 실행하세요. `_internal`과 `Profiles` 폴더를 옆에 그대로 두고, EXE만 따로 복사하지 마세요. Python 설치는 필요 없습니다. |
+| Windows 10/11 x64 (원본, 중국어) | 원본의 [Releases](https://github.com/QAQLeonard/a7c2-fl23-research/releases)에서 `A7C2Tools-Windows-x64.zip` | 사용 방법은 같습니다. |
+| macOS 14+ (Apple Silicon, 원본, 중국어) | 원본의 [Releases](https://github.com/QAQLeonard/a7c2-fl23-research/releases)에서 `A7C2Tools-macOS-arm64.dmg` | 앱을 응용 프로그램 폴더로 끌어다 놓으세요. 개발자 서명이 없으므로 시스템 설정 → 개인정보 보호 및 보안에서 한 번 허용해야 합니다. Intel 빌드는 없습니다. **실제 Mac에서의 USB는 아직 검증되지 않았습니다.** |
 
 > [!NOTE]
-> 위 링크는 원본 프로젝트의 릴리스(중국어 UI)입니다. 한국어 UI 버전은 이 저장소의 소스에서 직접 실행하거나 빌드하세요([명령줄 및 개발](#명령줄-및-개발) 참조).
+> 한국어판은 현재 Windows용만 제공합니다. macOS 한국어판은 Mac에서 이 저장소의 소스로 직접 빌드해야 합니다([명령줄 및 개발](#명령줄-및-개발) 참조). 한국어판은 원본 3.0.3과 코드가 같고 화면 문구만 다르며, 실제 카메라에서 별도로 시험하지는 않았습니다.
 
 두 패키지 모두 **DCP와 `.a7look` 짝 파일 15종**(후지필름 11종, 리코 색감 4종)을 포함합니다. 룩마다 두 파일이 같은 이름으로 나란히 있습니다.
 - **Windows:** EXE 옆의 `Profiles` 폴더.
@@ -407,7 +408,13 @@
 
 ## 크레딧 및 라이선스
 
-이 배포본의 프로젝트 원본 코드는 수정하지 않은 표준 [PolyForm Noncommercial License 1.0.0](LICENSE)을 따릅니다. 모든 상업적 이용과 영리 행위를 금지합니다. 이전 버전과 제3자 자료는 원래 조건을 유지합니다. [기존 MIT 텍스트](docs/licenses/project-legacy-MIT.txt)를 참조하세요. DCP, 참조 룩, 포함된 제3자 구성 요소는 각자의 라이선스와 출처 표기를 유지합니다. [고지 사항](docs/en/notices.md)(영문)을 참조하세요. 후지필름 DCP 참조는 샤오훙수의 **门萨特里顿**, 리코 참조는 **爸总林先森**의 작업입니다.
+이 배포본의 프로젝트 원본 코드는 수정하지 않은 표준 [PolyForm Noncommercial License 1.0.0](LICENSE)을 따릅니다.
+
+Required Notice: Copyright (c) 2026 QAQLeonard, for original project-authored code.
+
+한국어 번역은 원본과 같은 라이선스로 제공하며, 상업적 이용과 유료 배포를 금지합니다.
+
+모든 상업적 이용과 영리 행위를 금지합니다. 이전 버전과 제3자 자료는 원래 조건을 유지합니다. [기존 MIT 텍스트](docs/licenses/project-legacy-MIT.txt)를 참조하세요. DCP, 참조 룩, 포함된 제3자 구성 요소는 각자의 라이선스와 출처 표기를 유지합니다. [고지 사항](docs/en/notices.md)(영문)을 참조하세요. 후지필름 DCP 참조는 샤오훙수의 **门萨特里顿**, 리코 참조는 **爸总林先森**의 작업입니다.
 
 이 프로젝트는 독립 연구이며 Sony, Fujifilm, Ricoh, Adobe와 관련이 없습니다. 룩 이름은 보증이나 정확한 색 일치를 의미하지 않으며, 이 도구는 Sony가 서명한 업데이트가 아닙니다.
 
