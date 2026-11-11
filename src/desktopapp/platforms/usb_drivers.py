@@ -232,6 +232,24 @@ def install(arguments, job, *, report=None):
     return result
 
 
+def host_pids():
+    """Present Sony PIDs from Windows SetupAPI, including driverless devices.
+
+    Enumeration only. A failed query adds nothing, leaving libusb's view.
+    """
+    try:
+        from .windows_pnp import devices
+        rows = devices()
+    except Exception:
+        return []
+    found = []
+    for row in rows:
+        match = re.match(r'^USB\\VID_054C&PID_([0-9A-F]{4})(?:[\\&]|$)',str(row.get('id', '')), re.I)
+        if match and match[1].lower() not in found:
+            found.append(match[1].lower())
+    return found
+
+
 def prepare(job):
     """Explicit two-stage setup; install only a currently present camera PID."""
     from looktool.devicesession import Camera, modules
@@ -255,6 +273,7 @@ def prepare(job):
             results.append(install({'pid': '0336'}, job, report=report))
 
         transport.SERVICE_DRIVER_SETUP = service_driver
+        transport.HOST_SONY_PIDS = host_pids
     try:
         print('카메라 서비스 연결을 설정하는 중입니다(이 단계에서는 펌웨어에 쓰지 않음). 두 USB ID를 각각 검사합니다.', flush=True)
         with Camera() as camera:
@@ -263,6 +282,7 @@ def prepare(job):
                     'camera_firmware_written': False, 'driver_results': results}
     finally:
         transport.SERVICE_DRIVER_SETUP = None
+        transport.HOST_SONY_PIDS = None
 
 
 def driver_inventory():

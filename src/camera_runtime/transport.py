@@ -135,6 +135,11 @@ class SonyBusyFailure(DiagnosticUsbFailure): pass
 # Optional desktop-only driver preparation between the two enumerations.
 # CLI sessions leave it unset; it never retries authentication or firmware I/O.
 SERVICE_DRIVER_SETUP = None
+# Optional host enumeration of present Sony PIDs, set beside SERVICE_DRIVER_SETUP
+# by the Windows desktop driver setup. Windows libusb does not list a device
+# that has no driver yet, so a first-time 0336 is invisible to libusb alone.
+# Enumeration only; it never opens the device.
+HOST_SONY_PIDS = None
 READY_WAIT=30
 SONY_BUSY_WAIT=10
 POLL_INTERVAL=1
@@ -275,7 +280,11 @@ def _cool_down():
 
 def _sony_pids():
     backend=usb.backend.libusb1.get_backend(find_library=libusb_package.find_library)
-    return ['%04x'%d.idProduct for d in usb.core.find(find_all=True,idVendor=0x054c,backend=backend)]
+    found=['%04x'%d.idProduct for d in usb.core.find(find_all=True,idVendor=0x054c,backend=backend)]
+    if HOST_SONY_PIDS is not None:
+        for pid in HOST_SONY_PIDS():
+            if pid not in found:found.append(pid)
+    return found
 
 
 def _wait_for(pid,seconds,seen,prepare=None):
@@ -287,6 +296,9 @@ def _wait_for(pid,seconds,seen,prepare=None):
             if found not in seen:seen.append(found)
         if prepare is not None and not prepared and '%04x'%pid in seen:
             prepare();prepared=True
+            # Installing a driver can outlast the wait and re-enumerates the
+            # device; give the rebound interface a fresh window to open.
+            deadline=max(deadline,time.monotonic()+seconds)
         try:return get_device(pid)
         except RuntimeError:
             if time.monotonic()>=deadline:return None

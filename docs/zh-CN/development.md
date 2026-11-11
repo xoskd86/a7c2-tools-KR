@@ -88,7 +88,7 @@
 **USB 服务入口**（`camera_runtime/transport.Session`）：
 1. 检查普通 USB 的产品字符串。
 2. 认证。
-3. 等待 `0336` 出现。
+3. 等待 `0336` 出现。在 Windows 驱动准备（`usb_prepare`）期间，用 Windows SetupAPI 枚举补充 libusb：尚未安装驱动的 `0336` 在 libusb 中不可见。随后进入 `0336` 驱动步骤，驱动步骤结束后重新计时等待打开。
 4. 再次认证。
 5. 用属性 `00e70003`（十六进制文本序列号摘要）绑定机身。
 

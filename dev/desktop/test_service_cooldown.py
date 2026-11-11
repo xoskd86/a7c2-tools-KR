@@ -1,9 +1,11 @@
 """Service re-entry cooldown and bounce retry, with simulated USB only."""
+from types import SimpleNamespace
 from unittest.mock import Mock
 import pytest
 from looktool import devicesession
 
 transport, _ = devicesession.modules()
+real_sony_pids = transport._sony_pids
 
 
 class Stop(Exception):
@@ -22,6 +24,7 @@ class Camera:
         monkeypatch.setattr(transport, '_sony_pids', self.pids)
         monkeypatch.setattr(transport, '_service_exit', None)
         monkeypatch.setattr(transport, 'SERVICE_DRIVER_SETUP', None)
+        monkeypatch.setattr(transport, 'HOST_SONY_PIDS', None)
         monkeypatch.setattr(transport.usb.util, 'get_string', lambda dev, index: transport.core.MODEL)
         monkeypatch.setattr(transport.usb.util, 'dispose_resources', lambda dev: None)
         monkeypatch.setattr(transport, 'GenericUsbDriver', lambda backend: backend)
@@ -113,6 +116,48 @@ def test_windows_driver_preparation_runs_only_after_service_appears(monkeypatch)
     monkeypatch.setattr(transport,'SERVICE_DRIVER_SETUP',lambda:modes.append(camera.state()))
     with pytest.raises(Stop):transport.Session().__enter__()
     assert camera.auths==2 and modes==['service']
+
+
+def test_windows_driverless_service_is_seen_through_host_enumeration(monkeypatch):
+    """Windows libusb does not list 0336 before it has a driver (field report 2026-11-11)."""
+    camera=Camera(monkeypatch,bounces=0,platform='win32')
+    monkeypatch.setattr(transport,'_sony_pids',real_sony_pids)
+    monkeypatch.setattr(transport.usb.backend.libusb1,'get_backend',lambda find_library:object())
+    ready=[]
+    def libusb_find(find_all,idVendor,backend):
+        state=camera.state()
+        if state=='msc':return [SimpleNamespace(idProduct=0x0e8a)]
+        return [SimpleNamespace(idProduct=0x0336)] if ready else []
+    monkeypatch.setattr(transport.usb.core,'find',libusb_find)
+    monkeypatch.setattr(transport,'HOST_SONY_PIDS',lambda:['0336'] if camera.state()=='service' else [])
+    get=camera.get_device
+    def open_device(pid):
+        if pid==0x0336 and not (ready and camera.now>=ready[0]):raise RuntimeError('no driver')
+        return get(pid)
+    monkeypatch.setattr(transport,'get_device',open_device)
+    modes=[]
+    def setup():
+        modes.append(camera.state())
+        # The administrator prompt and installation outlast the 20 s wait,
+        # and the rebound interface opens a few seconds later.
+        camera.now+=transport.SERVICE_WAIT*3
+        ready.append(camera.now+3)
+    monkeypatch.setattr(transport,'SERVICE_DRIVER_SETUP',setup)
+    with pytest.raises(Stop):transport.Session().__enter__()
+    assert camera.auths==1 and modes==['service']
+
+
+def test_driverless_service_without_host_enumeration_keeps_old_report(monkeypatch):
+    """CLI sessions set no host enumeration; libusb's view alone is unchanged."""
+    camera=Camera(monkeypatch,bounces=0,msc_returns=False)
+    monkeypatch.setattr(transport,'_sony_pids',real_sony_pids)
+    monkeypatch.setattr(transport.usb.backend.libusb1,'get_backend',lambda find_library:object())
+    monkeypatch.setattr(transport.usb.core,'find',lambda find_all,idVendor,backend:
+                        [SimpleNamespace(idProduct=0x0e8a)] if camera.state()=='msc' else [])
+    get=camera.get_device
+    monkeypatch.setattr(transport,'get_device',lambda pid:(_ for _ in ()).throw(RuntimeError('no driver')) if pid==0x0336 else get(pid))
+    with pytest.raises(RuntimeError,match='일반 USB로 돌아오지 않았습니다'):transport.Session().__enter__()
+    assert camera.auths==1
 
 
 def test_authentication_error_is_not_retried(monkeypatch):
