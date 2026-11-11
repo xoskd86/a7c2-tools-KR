@@ -78,7 +78,6 @@
 - [크레딧 및 라이선스](#크레딧-및-라이선스)
 - [필름 룩 비교](#필름-룩-비교)
 - [감사의 말](#감사의-말)
-- [후원](#후원)
 
 ## 주요 기능
 
@@ -493,24 +492,3 @@ Required Notice: Copyright (c) 2026 QAQLeonard, for original project-authored co
   - 그리고 이 프로젝트를 인용하고, 공유하고, 기반으로 삼아 준 모든 개발자께 감사드립니다.
 - **테스터:** 자신의 카메라로 테스트하고 끈기 있게 로그를 보내 준 모든 분께 감사드립니다. 모든 보고가 도구를 더 안전하게 만들었습니다.
 - **모두에게:** 별을 눌러 주고, 공유하고, 커뮤니티 채팅에 참여해 준 모든 분께 감사드립니다. 여러분 덕분에 이 프로젝트가 3.0까지 왔습니다.
-
-## 후원
-
-(원작자 후원 정보) 이 프로젝트가 도움이 되었다면 커피 한 잔 사 주셔도 좋습니다 ☕. 후원은 전적으로 선택이며 아무것도 잠금 해제하지 않고, 프로젝트는 계속 무료 오픈소스로 유지됩니다.
-
-<table>
-  <tr>
-    <td align="center"><img src="docs/images/sponsor/wechat.png" alt="WeChat Pay QR 코드" width="200"><br>WeChat Pay</td>
-    <td align="center"><img src="docs/images/sponsor/alipay.png" alt="Alipay QR 코드" width="200"><br>Alipay</td>
-    <td align="center"><img src="docs/images/sponsor/usdt-bep20.png" alt="USDT (BEP20) QR 코드" width="200"><br>USDT (BEP20)</td>
-  </tr>
-</table>
-
-**USDT 주소**(**BNB Smart Chain / BEP20**의 USDT 전용):
-
-```text
-0xbf0b2900f7a45a029a42013b90911f796735a753
-```
-
-> [!WARNING]
-> USDT는 BEP20으로만 보내세요. 다른 네트워크나 토큰은 분실될 수 있으며, 이 주소로 NFT를 보내지 마세요.
