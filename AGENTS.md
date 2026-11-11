@@ -117,3 +117,6 @@ worker/log messages in Korean, and adds `README.ko.md`. Only user-visible string
 differ from upstream; camera bytes, checks and workflows are unchanged. Keep new
 user-visible strings in Korean, keep button names quoted in messages identical to
 the button labels, and update the matching test assertions with them.
+`.github/README.md` is the Korean README that GitHub shows on the repository
+home page. It is a copy of `README.ko.md` with relative links prefixed by `../`;
+update both together. The root `README.md` stays English to ease upstream merges.
